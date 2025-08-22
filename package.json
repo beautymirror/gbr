@@ -1,0 +1,17 @@
+{
+  "name": "beauty-rank-functions",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "echo \"Building site...\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@google/generative-ai": "^0.1.3",
+    "firebase-admin": "^12.0.0",
+    "stripe": "^14.10.0"
+  }
+}
