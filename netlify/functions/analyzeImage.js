@@ -14,12 +14,6 @@ if (!admin.apps.length) {
 }
 const db = admin.firestore();
 
-// Функция для определения доминирующей эмоции
-const getDominantEmotion = (emotions) => {
-    if (!emotions) return 'Neutral';
-    return Object.keys(emotions).reduce((a, b) => emotions[a] > emotions[b] ? a : b);
-};
-
 exports.handler = async (event, context) => {
   const headers = {
     "Access-Control-Allow-Origin": "*",
@@ -49,8 +43,8 @@ exports.handler = async (event, context) => {
     formData.append('api_key', apiKey);
     formData.append('api_secret', apiSecret);
     formData.append('image_base64', image);
-    // ИЗМЕНЕНИЕ: Убран атрибут 'skinstatus'
-    formData.append('return_attributes', 'beauty,age,emotion,smile,gender');
+    // ИЗМЕНЕНИЕ: Запрашиваем только оценку красоты и пол
+    formData.append('return_attributes', 'beauty,gender');
 
     const faceResponse = await fetch(faceplusplusUrl, {
       method: 'POST',
@@ -70,22 +64,16 @@ exports.handler = async (event, context) => {
     const attributes = face.attributes;
     
     const beautyScore = attributes.beauty;
+    // Используем пол, который указал пользователь, для выбора правильной оценки
     const score = (userData.gender === 'male' ? beautyScore.male_score : beautyScore.female_score) / 10;
-    const age = attributes.age.value;
-    const emotion = getDominantEmotion(attributes.emotion);
-    const smileLevel = attributes.smile.value;
-
-    const fullResult = {
+    
+    const simpleResult = {
       score: score,
-      age: age,
-      emotion: emotion,
-      smileLevel: smileLevel,
-      gender: attributes.gender.value,
     };
     
     const finalResultForDb = {
       ...userData,
-      ...fullResult,
+      score: score,
       timestamp: admin.firestore.FieldValue.serverTimestamp(),
     };
     await db.collection("rankings").add(finalResultForDb);
@@ -93,7 +81,10 @@ exports.handler = async (event, context) => {
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify(fullResult),
+      body: JSON.stringify({
+        score: score.toFixed(1),
+        rank: "Your analysis is complete!", // Добавляем этот текст для отображения
+      }),
     };
   } catch (error) {
     console.error("Analysis Error:", error);
