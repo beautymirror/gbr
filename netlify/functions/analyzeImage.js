@@ -35,6 +35,10 @@ exports.handler = async (event, context) => {
       throw new Error("Missing image or user data.");
     }
 
+    // ИЗМЕНЕНИЕ: Определяем страну сразу при анализе
+    const countryName = context.geo?.country?.name || "Unknown";
+    userData.country = countryName; // Добавляем страну к данным пользователя
+
     const faceplusplusUrl = "https://api-us.faceplusplus.com/facepp/v3/detect";
     const apiKey = process.env.FACEPLUSPLUS_API_KEY;
     const apiSecret = process.env.FACEPLUSPLUS_API_SECRET;
@@ -73,15 +77,15 @@ exports.handler = async (event, context) => {
       rank: "Your analysis is complete!"
     };
     
-    // ИЗМЕНЕНИЕ: Сразу сохраняем все данные в базу данных
+    const { base64Image, ...userDataForDb } = userData;
+
     const finalResultForDb = {
-      ...userData,
+      ...userDataForDb,
       score: score,
       timestamp: admin.firestore.FieldValue.serverTimestamp(),
     };
     await db.collection("rankings").add(finalResultForDb);
 
-    // Возвращаем результат на сайт для отображения после оплаты
     return {
       statusCode: 200,
       headers,
