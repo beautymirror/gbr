@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://js.stripe.com/v3/"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #F7F7F8; overflow: hidden; }
+        body { font-family: 'Inter', sans-serif; background-color: #F7F7F8; overflow-y: auto; }
         .logo-gradient-text { background: linear-gradient(90deg, #D946EF, #8B5CF6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .cta-button { background: linear-gradient(90deg, #D946EF, #8B5CF6); color: white; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
         .cta-button:hover { box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.5), 0 0 15px rgba(217, 70, 239, 0.3); transform: translateY(-3px) scale(1.05); }
@@ -29,7 +29,7 @@
     </style>
 </head>
 <body class="text-gray-900">
-    <main class="w-screen h-screen grid grid-cols-1 md:grid-cols-2">
+    <main class="w-screen min-h-screen grid grid-cols-1 md:grid-cols-2">
         <!-- Left Visual Panel -->
         <div id="visual-panel" class="hidden md:flex items-center justify-center p-8 relative overflow-hidden">
             <div id="visual-welcome" class="visual-content text-center opacity-100"><img src="welcome.svg" alt="Welcome Illustration" class="w-[34rem] h-[34rem] mx-auto mb-4" onerror="this.onerror=null;this.src='https://placehold.co/544x544/E9D5FF/4C1D95?text=Welcome';"><h2 class="text-3xl font-bold text-gray-700">Global Beauty Rank</h2><p class="text-gray-500 mt-2">Discover your beauty score with our AI.</p></div>
@@ -38,7 +38,7 @@
             <img id="image-preview" class="visual-content max-h-full max-w-full object-contain rounded-2xl shadow-lg opacity-0 hidden" />
         </div>
         <!-- Right Chat Panel -->
-        <div class="w-full h-screen flex flex-col bg-white">
+        <div class="w-full min-h-screen flex flex-col bg-white">
             <div class="p-4 border-b border-gray-200"><div class="w-full bg-gray-200 rounded-full h-2.5"><div id="progress-bar-fill" class="bg-gradient-to-r from-pink-500 to-purple-500 h-2.5 rounded-full transition-width duration-500" style="width: 0%"></div></div></div>
             <div id="chat-log" class="flex-grow p-6 space-y-6 overflow-y-auto"></div>
             <div id="input-area" class="p-4 border-t border-gray-200 bg-gray-50"></div>
@@ -111,7 +111,7 @@
 
                 if (!response.ok) {
                     const errorData = await response.json();
-                    throw new Error(`Function Error: ${response.statusText} - ${errorData.error}`);
+                    throw new Error(`Function Error: ${response.statusText} - ${errorData.error || 'Unknown error'}`);
                 }
 
                 const aiResult = await response.json();
@@ -121,7 +121,7 @@
             } catch (error) {
                 console.error("AI Score Error:", error);
                 await addBotMessage("Unfortunately, the AI analyzer is not responding right now. Please try again a little later.", true);
-                renderResult({score: '?', rank: 'Analysis Error'});
+                renderResult({error: true});
             }
         }
         
@@ -137,7 +137,6 @@
             paymentBubble.className = 'bot-bubble max-w-md p-4 sm:p-6 rounded-2xl rounded-bl-lg w-full';
             const form = document.createElement('form');
             form.id = 'payment-form';
-            // ИЗМЕНЕНИЕ: HTML возвращен к старому виду с "Special offer"
             form.innerHTML = `<div class="flex justify-between items-start"><div><h3 class="font-bold text-lg text-indigo-800">Special offer</h3><p class="text-sm text-indigo-700">NOW ONLY FOR YOU</p></div><div class="text-right"><p class="text-gray-400 line-through" id="old-price-display">$9.99</p><p class="text-2xl font-bold text-indigo-800" id="payment-amount-display">...</p></div></div><div class="my-4 space-y-3"><div id="payment-request-button"></div><p id="divider-text" class="text-center text-sm text-gray-500 hidden">OR PAY WITH CARD</p><div id="card-element" class="bg-white p-3 rounded-lg border border-indigo-200"></div></div><div id="card-errors" role="alert" class="text-red-500 text-sm mt-2 h-4"></div><button id="submit-payment" class="w-full mt-4 cta-button font-bold text-lg px-8 py-3 rounded-xl"><span>Pay and get result</span></button>`;
             paymentBubble.appendChild(form);
             container.appendChild(avatar);
@@ -183,7 +182,6 @@
                     paymentRequest,
                 });
 
-                // ИЗМЕНЕНИЕ: Логика отображения
                 cardElement = elements.create('card');
                 cardElement.mount('#card-element');
 
@@ -247,6 +245,46 @@
             }
         }
         
+        // ИЗМЕНЕНИЕ: Полностью новая функция для отображения результатов
+        function renderResult(result) {
+            const container = document.createElement('div');
+            container.className = 'flex items-start gap-3 chat-bubble-wrapper self-start w-full';
+            const avatar = document.createElement('img');
+            avatar.src = 'avatar.svg';
+            avatar.alt = 'bot avatar';
+            avatar.className = 'w-10 h-10 rounded-full border-2 border-purple-100 flex-shrink-0';
+            avatar.onerror = () => { avatar.style.display = 'none'; };
+            
+            const resultContainer = document.createElement('div');
+            resultContainer.className = 'bot-bubble max-w-md p-4 sm:p-6 rounded-2xl rounded-bl-lg w-full';
+
+            if (result.error) {
+                resultContainer.innerHTML = `<h2 class="text-2xl font-bold tracking-tight">Analysis Error</h2><p class="text-gray-600 mt-2">Unfortunately, the AI analyzer is not responding right now. Please try again a little later.</p><button onclick="location.reload()" class="cta-button font-bold text-lg px-8 py-3 rounded-xl mt-6">Try Again</button>`;
+            } else {
+                const smileText = result.smileLevel > 50 ? 'Yes' : 'No';
+                resultContainer.innerHTML = `
+                    <h2 class="text-2xl font-bold tracking-tight text-center">Your Full Analysis</h2>
+                    <div class="text-center my-4">
+                        <p class="text-sm text-indigo-600 font-semibold">BEAUTY SCORE</p>
+                        <p class="text-8xl font-extrabold logo-gradient-text">${result.score.toFixed(1)}</p>
+                        <p class="text-gray-500 text-sm">out of 10.0</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 text-sm mt-6 border-t border-indigo-100 pt-4">
+                        <div class="flex items-center gap-2"><svg class="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg><div><p class="font-bold">Estimated Age</p><p class="text-gray-600">${result.age}</p></div></div>
+                        <div class="flex items-center gap-2"><svg class="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><div><p class="font-bold">Emotion</p><p class="text-gray-600">${result.emotion}</p></div></div>
+                        <div class="flex items-center gap-2"><svg class="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg><div><p class="font-bold">Skin Health</p><p class="text-gray-600">${result.skinHealth.toFixed(1)} / 100</p></div></div>
+                        <div class="flex items-center gap-2"><svg class="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg><div><p class="font-bold">Smiling?</p><p class="text-gray-600">${smileText}</p></div></div>
+                    </div>
+                    <button onclick="location.reload()" class="cta-button w-full font-bold text-lg px-8 py-3 rounded-xl mt-8">Try Again</button>
+                `;
+            }
+            
+            container.appendChild(avatar);
+            container.appendChild(resultContainer);
+            chatLog.appendChild(container);
+            scrollToBottom();
+        }
+
         async function checkPaymentStatus() {
             const clientSecret = new URLSearchParams(window.location.search).get(
                 "payment_intent_client_secret"
@@ -541,22 +579,6 @@
                 }
                 proceedToNextStep('Photo from camera', 'Photo from camera');
             };
-        }
-        function renderResult(result) {
-            const container = document.createElement('div');
-            container.className = 'flex items-start gap-3 chat-bubble-wrapper self-start';
-            const avatar = document.createElement('img');
-            avatar.src = 'avatar.svg';
-            avatar.alt = 'bot avatar';
-            avatar.className = 'w-10 h-10 rounded-full border-2 border-purple-100';
-            avatar.onerror = () => { avatar.style.display = 'none'; };
-            const resultContainer = document.createElement('div');
-            resultContainer.className = 'text-center bot-bubble max-w-md p-4 rounded-2xl rounded-bl-lg';
-            resultContainer.innerHTML = `<h2 class="text-2xl font-bold tracking-tight">Your Result:</h2><p class="text-8xl font-extrabold logo-gradient-text my-4">${result.score}</p><p class="text-gray-600 text-lg">${result.rank}</p><button onclick="location.reload()" class="cta-button font-bold text-lg px-8 py-3 rounded-xl mt-8">Try Again</button>`;
-            container.appendChild(avatar);
-            container.appendChild(resultContainer);
-            chatLog.appendChild(container);
-            scrollToBottom();
         }
         
         checkPaymentStatus().then(() => {
