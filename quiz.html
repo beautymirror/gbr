@@ -64,7 +64,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // ВАЖНО: Вставьте сюда ваш НАСТОЯЩИЙ ПУБЛИКУЕМЫЙ ключ от Stripe (pk_live_...)
+        // ИЗМЕНЕНИЕ: Вставлен ваш публичный ключ Stripe
         const STRIPE_PUBLISHABLE_KEY = "pk_live_51PQ7mLA19LNOHDEO1yMYpJ3B74vO6GdJD0No0qRpsDBo5Xw956DxQMayJWUZjlNEo6S1WdEWY2Hr6ysFkLI4386I00vkmegPBL";
 
         // Используем относительные пути. Это самое надежное решение.
@@ -78,7 +78,7 @@
 
         let currentStep = 0;
         const userData = { base64Image: null };
-        let stripe, elements;
+        let stripe, elements, cardElement;
 
         const quizSteps = [
             { id: 'welcome', type: 'message', text: "Hello! I'm your personal AI assistant. Ready to discover your beauty score?" },
@@ -137,7 +137,8 @@
             paymentBubble.className = 'bot-bubble max-w-md p-4 sm:p-6 rounded-2xl rounded-bl-lg w-full';
             const form = document.createElement('form');
             form.id = 'payment-form';
-            form.innerHTML = `<div class="flex justify-between items-start"><div><h3 class="font-bold text-lg text-indigo-800">Your Price</h3></div><div class="text-right"><p class="text-2xl font-bold text-indigo-800" id="payment-amount-display">...</p></div></div><div class="my-4"><div id="payment-element"></div></div><div id="card-errors" role="alert" class="text-red-500 text-sm mt-2 h-4"></div><button id="submit-payment" class="w-full mt-4 cta-button font-bold text-lg px-8 py-3 rounded-xl"><span>Pay and get result</span></button>`;
+            // ИЗМЕНЕНИЕ: HTML для компактной формы и кнопки Apple/Google Pay
+            form.innerHTML = `<div class="flex justify-between items-start"><div><h3 class="font-bold text-lg text-indigo-800">Your Price</h3></div><div class="text-right"><p class="text-2xl font-bold text-indigo-800" id="payment-amount-display">...</p></div></div><div class="my-4 space-y-3"><div id="payment-request-button"></div><div id="card-element" class="bg-white p-3 rounded-lg border border-indigo-200"></div></div><div id="card-errors" role="alert" class="text-red-500 text-sm mt-2 h-4"></div><button id="submit-payment" class="w-full mt-4 cta-button font-bold text-lg px-8 py-3 rounded-xl"><span>Pay and get result</span></button>`;
             paymentBubble.appendChild(form);
             container.appendChild(avatar);
             container.appendChild(paymentBubble);
@@ -164,61 +165,89 @@
 
                 const formattedPrice = new Intl.NumberFormat('en-US', { style: 'currency', currency: currency.toUpperCase() }).format(amount / 100);
                 document.getElementById('payment-amount-display').textContent = formattedPrice;
-                document.querySelector('#submit-payment span').textContent = `Pay ${formattedPrice} and get result`;
+                document.querySelector('#submit-payment span').textContent = `Pay ${formattedPrice}`;
 
-                elements = stripe.elements({ clientSecret, appearance: { theme: 'stripe' } });
-                const paymentElement = elements.create("payment");
-                paymentElement.mount("#payment-element");
+                // ИЗМЕНЕНИЕ: Логика для Apple/Google Pay и компактной формы
+                const paymentRequest = stripe.paymentRequest({
+                    country: country,
+                    currency: currency.toLowerCase(),
+                    total: {
+                        label: 'Beauty Analysis',
+                        amount: amount,
+                    },
+                    requestPayerName: true,
+                    requestPayerEmail: true,
+                });
+
+                elements = stripe.elements();
+                const prButton = elements.create('paymentRequestButton', {
+                    paymentRequest,
+                });
+
+                const canMakePayment = await paymentRequest.canMakePayment();
+                if (canMakePayment) {
+                    prButton.mount('#payment-request-button');
+                    document.getElementById('card-element').style.display = 'none';
+                    document.getElementById('submit-payment').style.display = 'none';
+                } else {
+                    cardElement = elements.create('card');
+                    cardElement.mount('#card-element');
+                    document.getElementById('payment-request-button').style.display = 'none';
+                }
+
+                paymentRequest.on('paymentmethod', async (ev) => {
+                    const { paymentIntent, error: confirmError } = await stripe.confirmCardPayment(
+                        clientSecret,
+                        { payment_method: ev.paymentMethod.id },
+                        { handleActions: false }
+                    );
+
+                    if (confirmError) {
+                        ev.complete('fail');
+                    } else {
+                        ev.complete('success');
+                        if (paymentIntent.status === "requires_action") {
+                            const { error } = await stripe.confirmCardPayment(clientSecret);
+                            if (error) {
+                                addBotMessage("Payment failed. Please try again.", true);
+                            } else {
+                                proceedToNextStep({ payment: 'success' }, 'Payment successful');
+                            }
+                        } else {
+                            proceedToNextStep({ payment: 'success' }, 'Payment successful');
+                        }
+                    }
+                });
+
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const submitButton = document.getElementById('submit-payment');
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = `<div class="animate-spin h-5 w-5 mx-auto border-2 border-white border-t-transparent rounded-full"></div>`;
+                    
+                    const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+                        payment_method: {
+                            card: cardElement,
+                        },
+                    });
+
+                    if (error) {
+                        document.getElementById('card-errors').textContent = error.message;
+                        submitButton.disabled = false;
+                        submitButton.innerHTML = `<span>Pay ${formattedPrice}</span>`;
+                    } else if (paymentIntent.status === 'succeeded') {
+                        proceedToNextStep({ payment: 'success' }, 'Payment successful');
+                    }
+                });
 
             } catch (error) {
                 console.error("Error initializing payment:", error);
                 addBotMessage("Could not initialize payment. Please check your configuration and try again later.", true);
             }
-
-            form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const submitButton = document.getElementById('submit-payment');
-                submitButton.disabled = true;
-                submitButton.innerHTML = `<div class="animate-spin h-5 w-5 mx-auto border-2 border-white border-t-transparent rounded-full"></div>`;
-                
-                const { error } = await stripe.confirmPayment({
-                    elements,
-                    confirmParams: {
-                        return_url: window.location.href.split('?')[0],
-                    },
-                });
-
-                if (error) {
-                    document.getElementById('card-errors').textContent = error.message;
-                    submitButton.disabled = false;
-                    submitButton.innerHTML = `<span>Pay and get result</span>`;
-                }
-            });
         }
         
         async function checkPaymentStatus() {
-            const clientSecret = new URLSearchParams(window.location.search).get(
-                "payment_intent_client_secret"
-            );
-
-            if (!clientSecret) {
-                return;
-            }
-            
-            if (!stripe) {
-                stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
-            }
-
-            const { paymentIntent } = await stripe.retrievePaymentIntent(clientSecret);
-
-            if (paymentIntent.status === 'succeeded') {
-                currentStep = quizSteps.findIndex(step => step.id === 'calculating');
-                const savedUserData = localStorage.getItem('userData');
-                if(savedUserData) {
-                    Object.assign(userData, JSON.parse(savedUserData));
-                }
-                handleStep();
-            }
+            // Эта функция больше не нужна с новой логикой
         }
 
         function updateVisualPanel(stepId) {
@@ -508,11 +537,9 @@
             scrollToBottom();
         }
         
-        checkPaymentStatus().then(() => {
-            if (currentStep === 0 && !new URLSearchParams(window.location.search).has("payment_intent_client_secret")) {
-                handleStep();
-            }
-        });
+        // Запускаем квиз, так как checkPaymentStatus больше не нужен для инициации
+        handleStep();
+
     </script>
 </body>
 </html>
