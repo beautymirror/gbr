@@ -50,7 +50,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-        // Your web app's Firebase configuration - UPDATED with your config
+        // ВАЖНО: Вставьте сюда вашу конфигурацию Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyD9R43D9ktWxYFQtpkGJNTOgdWyZqfM-bU",
             authDomain: "global-beauty-rank.firebaseapp.com",
@@ -60,16 +60,18 @@
             appId: "1:916586590476:web:039be613c177dc46491929",
             measurementId: "G-KPWTDXMHF"
         };
-
-        // Initialize Firebase
+        
+        // Инициализируем Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- IMPORTANT: Replace with your REAL URLs and Keys ---
-        const createPaymentIntentUrl = "/.netlify/functions/createPaymentIntent";
-        const analyzeImageUrl = "/.netlify/functions/analyzeImage";
-        const STRIPE_PUBLISHABLE_KEY = "pk_live_51PQ7mLA19LNOHDEO1yMYpJ3B74vO6GdJD0No0qRpsDBo5Xw956DxQMayJWUZjlNEo6S1WdEWY2Hr6ysFkLI4386I00vkmegPBL"; // <-- PASTE YOUR KEY HERE
+        // ВАЖНО: Вставьте сюда ваш ПУБЛИКУЕМЫЙ ключ от Stripe
+        const STRIPE_PUBLISHABLE_KEY = "pk_live_YOUR_PUBLISHABLE_KEY";
 
+        // Используем полный URL для вызова функций
+        const siteUrl = "https://frabjous-gaufre-0a4dc3.netlify.app";
+        const createPaymentIntentUrl = `${siteUrl}/.netlify/functions/createPaymentIntent`;
+        const analyzeImageUrl = `${siteUrl}/.netlify/functions/analyzeImage`;
 
         const chatLog = document.getElementById('chat-log');
         const inputArea = document.getElementById('input-area');
@@ -78,7 +80,7 @@
 
         let currentStep = 0;
         const userData = { base64Image: null };
-        let stripe, elements, cardElement, clientSecret;
+        let stripe, elements;
 
         const countries = ["Andorra", "United Arab Emirates", "Afghanistan", "Antigua and Barbuda", "Anguilla", "Albania", "Armenia", "Angola", "Antarctica", "Argentina", "American Samoa", "Austria", "Australia", "Aruba", "Åland Islands", "Azerbaijan", "Bosnia and Herzegovina", "Barbados", "Bangladesh", "Belgium", "Burkina Faso", "Bulgaria", "Bahrain", "Burundi", "Benin", "Saint Barthélemy", "Bermuda", "Brunei", "Bolivia", "Caribbean Netherlands", "Brazil", "Bahamas", "Bhutan", "Bouvet Island", "Botswana", "Belarus", "Belize", "Canada", "Cocos (Keeling) Islands", "DR Congo", "Central African Republic", "Republic of the Congo", "Switzerland", "Côte d'Ivoire (Ivory Coast)", "Cook Islands", "Chile", "Cameroon", "China", "Colombia", "Costa Rica", "Cuba", "Cape Verde", "Curaçao", "Christmas Island", "Cyprus", "Czechia", "Germany", "Djibouti", "Denmark", "Dominica", "Dominican Republic", "Algeria", "Ecuador", "Estonia", "Egypt", "Western Sahara", "Eritrea", "Spain", "Ethiopia", "Finland", "Fiji", "Falkland Islands", "Micronesia", "Faroe Islands", "France", "Gabon", "United Kingdom", "Grenada", "Georgia", "French Guiana", "Guernsey", "Ghana", "Gibraltar", "Greenland", "Gambia", "Guinea", "Guadeloupe", "Equatorial Guinea", "Greece", "South Georgia", "Guatemala", "Guam", "Guinea-Bissau", "Guyana", "Hong Kong", "Heard Island and McDonald Islands", "Honduras", "Croatia", "Haiti", "Hungary", "Indonesia", "Ireland", "Israel", "Isle of Man", "India", "British Indian Ocean Territory", "Iraq", "Iran", "Iceland", "Italy", "Jersey", "Jamaica", "Jordan", "Japan", "Kenya", "Kyrgyzstan", "Cambodia", "Kiribati", "Comoros", "Saint Kitts and Nevis", "North Korea", "South Korea", "Kuwait", "Cayman Islands", "Kazakhstan", "Laos", "Lebanon", "Saint Lucia", "Liechtenstein", "Sri Lanka", "Liberia", "Lesotho", "Lithuania", "Luxembourg", "Latvia", "Libya", "Morocco", "Monaco", "Moldova", "Montenegro", "Saint Martin", "Madagascar", "Marshall Islands", "North Macedonia", "Mali", "Myanmar", "Mongolia", "Macau", "Northern Mariana Islands", "Martinique", "Mauritania", "Montserrat", "Malta", "Mauritius", "Maldives", "Malawi", "Mexico", "Malaysia", "Mozambique", "Namibia", "New Caledonia", "Niger", "Norfolk Island", "Nigeria", "Nicaragua", "Netherlands", "Norway", "Nepal", "Nauru", "Niue", "New Zealand", "Oman", "Panama", "Peru", "French Polynesia", "Papua New Guinea", "Philippines", "Pakistan", "Poland", "Saint Pierre and Miquelon", "Pitcairn Islands", "Puerto Rico", "Palestine", "Portugal", "Palau", "Paraguay", "Qatar", "Réunion", "Romania", "Serbia", "Russia", "Rwanda", "Saudi Arabia", "Solomon Islands", "Seychelles", "Sudan", "Sweden", "Singapore", "Saint Helena Ascension and Tristan da Cunha", "Slovenia", "Svalbard and Jan Mayen", "Slovakia", "Sierra Leone", "San Marino", "Senegal", "Somalia", "Suriname", "South Sudan", "São Tomé and Príncipe", "El Salvador", "Sint Maarten", "Syria", "Eswatini (Swaziland)", "Turks and Caicos Islands", "Chad", "French Southern and Antarctic Lands", "Togo", "Thailand", "Tajikistan", "Tokelau", "Timor-Leste", "Turkmenistan", "Tunisia", "Tonga", "Turkey", "Trinidad and Tobago", "Tuvalu", "Taiwan", "Tanzania", "Ukraine", "Uganda", "United States Minor Outlying Islands", "United States", "Uruguay", "Uzbekistan", "Vatican City (Holy See)", "Saint Vincent and the Grenadines", "Venezuela", "British Virgin Islands", "United States Virgin Islands", "Vietnam", "Vanuatu", "Wallis and Futuna", "Samoa", "Kosovo", "Yemen", "Mayotte", "South Africa", "Zambia", "Zimbabwe"];
 
@@ -109,7 +111,7 @@
                 const response = await fetch(analyzeImageUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ image: userData.base64Image, userData: userData })
+                    body: JSON.stringify({ image: userData.base64Image })
                 });
 
                 if (!response.ok) {
@@ -119,6 +121,19 @@
 
                 const aiResult = await response.json();
                 
+                try {
+                    await addDoc(collection(db, "rankings"), {
+                        name: userData.name || 'Anonymous',
+                        country: userData.country || 'Unknown',
+                        gender: userData.gender || 'Not specified',
+                        age: userData.age || 'Not specified',
+                        score: parseFloat(aiResult.score) || 0,
+                        timestamp: serverTimestamp()
+                    });
+                } catch (dbError) {
+                    console.error("Firestore write error:", dbError);
+                }
+
                 renderResult(aiResult);
 
             } catch (error) {
@@ -140,7 +155,8 @@
             paymentBubble.className = 'bot-bubble max-w-md p-4 sm:p-6 rounded-2xl rounded-bl-lg w-full';
             const form = document.createElement('form');
             form.id = 'payment-form';
-            form.innerHTML = `<div class="flex justify-between items-start"><div><h3 class="font-bold text-lg text-indigo-800">Special offer</h3><p class="text-sm text-indigo-700">NOW ONLY FOR YOU</p></div><div class="text-right"><p class="text-gray-400 line-through">$15.00</p><p class="text-2xl font-bold text-indigo-800">$1</p></div></div><div class="my-4 flex justify-center"><img src="payment.svg" alt="Payment methods" class="h-24" onerror="this.onerror=null;this.src='https://placehold.co/250x50/FFFFFF/333333?text=VISA+Mastercard+Amex';"></div><div id="card-element" class="bg-white p-3 rounded-lg border border-indigo-200"></div><div id="card-errors" role="alert" class="text-red-500 text-sm mt-2 h-4"></div><button id="submit-payment" class="w-full mt-4 cta-button font-bold text-lg px-8 py-3 rounded-xl"><span>Pay $1 and get result</span></button>`;
+            // ИЗМЕНЕНИЕ: HTML обновлен для Payment Element
+            form.innerHTML = `<div class="flex justify-between items-start"><div><h3 class="font-bold text-lg text-indigo-800">Special offer</h3><p class="text-sm text-indigo-700">NOW ONLY FOR YOU</p></div><div class="text-right"><p class="text-gray-400 line-through">$5.00</p><p class="text-2xl font-bold text-indigo-800">$1.00</p></div></div><div class="my-4"><div id="payment-element"></div></div><div id="card-errors" role="alert" class="text-red-500 text-sm mt-2 h-4"></div><button id="submit-payment" class="w-full mt-4 cta-button font-bold text-lg px-8 py-3 rounded-xl"><span>Pay $1.00 and get result</span></button>`;
             paymentBubble.appendChild(form);
             container.appendChild(avatar);
             container.appendChild(paymentBubble);
@@ -150,20 +166,17 @@
             try {
                 stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
                 const response = await fetch(createPaymentIntentUrl, { method: 'POST' });
-                const data = await response.json();
-                clientSecret = data.clientSecret;
+                const { clientSecret } = await response.json();
                 
-                elements = stripe.elements({ clientSecret });
-                cardElement = elements.create('card');
-                cardElement.mount('#card-element');
-                cardElement.on('change', (event) => {
-                    document.getElementById('card-errors').textContent = event.error ? event.error.message : '';
-                });
+                // ИЗМЕНЕНИЕ: Инициализируем Payment Element
+                elements = stripe.elements({ clientSecret, appearance: { theme: 'stripe' } });
+                const paymentElement = elements.create("payment");
+                paymentElement.mount("#payment-element");
+
             } catch (error) {
                 console.error("Error initializing payment:", error);
                 addBotMessage("Could not initialize payment. Please check your configuration and try again later.", true);
             }
-
 
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -171,23 +184,51 @@
                 submitButton.disabled = true;
                 submitButton.innerHTML = `<div class="animate-spin h-5 w-5 mx-auto border-2 border-white border-t-transparent rounded-full"></div>`;
                 
-                // ИЗМЕНЕНИЕ: Используем правильный метод confirmCardPayment
-                const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-                    payment_method: {
-                        card: cardElement,
+                // ИЗМЕНЕНИЕ: Используем новый метод confirmPayment
+                const { error } = await stripe.confirmPayment({
+                    elements,
+                    confirmParams: {
+                        return_url: window.location.href.split('?')[0], // Возвращаемся на ту же страницу
                     },
                 });
 
                 if (error) {
+                    // Эта часть кода не будет выполнена, если есть ошибка, так как Stripe перенаправит пользователя
                     document.getElementById('card-errors').textContent = error.message;
                     submitButton.disabled = false;
-                    submitButton.innerHTML = `<span>Pay $1 and get result</span>`;
-                } else if (paymentIntent.status === 'succeeded') {
-                    proceedToNextStep({ payment: 'success' }, 'Payment successful');
+                    submitButton.innerHTML = `<span>Pay $1.00 and get result</span>`;
                 }
             });
         }
         
+        // ИЗМЕНЕНИЕ: Новая функция для проверки статуса платежа после возврата
+        async function checkPaymentStatus() {
+            const clientSecret = new URLSearchParams(window.location.search).get(
+                "payment_intent_client_secret"
+            );
+
+            if (!clientSecret) {
+                return;
+            }
+            
+            if (!stripe) {
+                stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
+            }
+
+            const { paymentIntent } = await stripe.retrievePaymentIntent(clientSecret);
+
+            if (paymentIntent.status === 'succeeded') {
+                // Если платеж прошел, мы "перескакиваем" на шаг расчета
+                currentStep = quizSteps.findIndex(step => step.id === 'calculating');
+                // Нам нужно восстановить данные пользователя из localStorage
+                const savedUserData = localStorage.getItem('userData');
+                if(savedUserData) {
+                    Object.assign(userData, JSON.parse(savedUserData));
+                }
+                handleStep();
+            }
+        }
+
         function updateVisualPanel(stepId) {
             document.querySelectorAll('.visual-content').forEach(el => {
                 el.classList.add('opacity-0', 'hidden');
@@ -273,6 +314,7 @@
             updateVisualPanel(step.id);
             if (step.type === 'result') {
                 await getAIScore();
+                localStorage.removeItem('userData'); // Очищаем данные после использования
                 return;
             }
             let messageText = step.text;
@@ -293,6 +335,12 @@
         function proceedToNextStep(data, displayText) {
             const step = quizSteps[currentStep];
             userData[step.id] = data;
+            
+            // Сохраняем данные пользователя в localStorage перед оплатой
+            if(step.id === 'upload') {
+                localStorage.setItem('userData', JSON.stringify(userData));
+            }
+
             if (displayText) {
                 addUserMessage(displayText);
             }
@@ -506,9 +554,14 @@
             chatLog.appendChild(container);
             scrollToBottom();
         }
-        handleStep();
+        
+        // Запускаем квиз или проверяем статус платежа
+        checkPaymentStatus().then(() => {
+            // Если checkPaymentStatus не перенаправил нас, запускаем квиз с начала
+            if (currentStep === 0 && !new URLSearchParams(window.location.search).has("payment_intent_client_secret")) {
+                handleStep();
+            }
+        });
     </script>
 </body>
 </html>
-
-
