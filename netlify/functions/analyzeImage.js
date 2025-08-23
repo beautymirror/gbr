@@ -17,7 +17,6 @@ const db = admin.firestore();
 // Функция для определения доминирующей эмоции
 const getDominantEmotion = (emotions) => {
     if (!emotions) return 'Neutral';
-    // Находим эмоцию с самым высоким показателем
     return Object.keys(emotions).reduce((a, b) => emotions[a] > emotions[b] ? a : b);
 };
 
@@ -50,8 +49,8 @@ exports.handler = async (event, context) => {
     formData.append('api_key', apiKey);
     formData.append('api_secret', apiSecret);
     formData.append('image_base64', image);
-    // ИЗМЕНЕНИЕ: Запрашиваем больше атрибутов
-    formData.append('return_attributes', 'beauty,age,emotion,skinstatus,smile,gender');
+    // ИЗМЕНЕНИЕ: Убран атрибут 'skinstatus'
+    formData.append('return_attributes', 'beauty,age,emotion,smile,gender');
 
     const faceResponse = await fetch(faceplusplusUrl, {
       method: 'POST',
@@ -70,24 +69,20 @@ exports.handler = async (event, context) => {
     const face = faceData.faces[0];
     const attributes = face.attributes;
     
-    // Собираем все данные
     const beautyScore = attributes.beauty;
     const score = (userData.gender === 'male' ? beautyScore.male_score : beautyScore.female_score) / 10;
     const age = attributes.age.value;
     const emotion = getDominantEmotion(attributes.emotion);
     const smileLevel = attributes.smile.value;
-    const skinHealth = attributes.skinstatus.health;
 
     const fullResult = {
       score: score,
       age: age,
       emotion: emotion,
       smileLevel: smileLevel,
-      skinHealth: skinHealth,
-      gender: attributes.gender.value, // Пол, определенный AI
+      gender: attributes.gender.value,
     };
     
-    // Сохраняем расширенный результат в базу
     const finalResultForDb = {
       ...userData,
       ...fullResult,
@@ -98,7 +93,6 @@ exports.handler = async (event, context) => {
     return {
       statusCode: 200,
       headers,
-      // Отправляем все данные на сайт
       body: JSON.stringify(fullResult),
     };
   } catch (error) {
