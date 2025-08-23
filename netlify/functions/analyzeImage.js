@@ -35,10 +35,9 @@ exports.handler = async (event, context) => {
       throw new Error("Missing image or user data.");
     }
 
-    // ИЗМЕНЕНИЕ: Определяем страну сразу при анализе
-    const countryName = context.geo?.country?.name || "Unknown";
-    userData.country = countryName; // Добавляем страну к данным пользователя
-
+    // ИСПРАВЛЕНИЕ: Мы больше не определяем страну по IP.
+    // Мы доверяем данным, которые пользователь выбрал в квизе (userData.country).
+    
     const faceplusplusUrl = "https://api-us.faceplusplus.com/facepp/v3/detect";
     const apiKey = process.env.FACEPLUSPLUS_API_KEY;
     const apiSecret = process.env.FACEPLUSPLUS_API_SECRET;
