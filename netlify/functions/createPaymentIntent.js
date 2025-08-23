@@ -41,9 +41,9 @@ exports.handler = async (event, context) => {
   }
   
   try {
-    // ИСПРАВЛЕНИЕ: Добавлена проверка на наличие геолокации
-    const countryCode = context.geo?.country?.code;
-    const countryName = context.geo?.country?.name || "Unknown";
+    // ИСПРАВЛЕНИЕ: Добавлена проверка на наличие геолокации и фолбэк на "US"
+    const countryCode = context.geo?.country?.code || "US"; 
+    const countryName = context.geo?.country?.name || "United States";
     let amount;
 
     if (highIncomeCountries.includes(countryCode)) {
@@ -71,7 +71,8 @@ exports.handler = async (event, context) => {
         clientSecret: paymentIntent.client_secret,
         amount: amount,
         currency: currency,
-        country: countryName
+        countryCode: countryCode, // Возвращаем код страны для Stripe
+        countryName: countryName  // Возвращаем имя страны для сохранения в базу
       }),
     };
   } catch (error) {
