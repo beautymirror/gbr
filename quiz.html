@@ -11,7 +11,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://js.stripe.com/v3/"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #F7F7F8; overflow-y: auto; }
+        /* ИЗМЕНЕНИЕ: overflow: hidden для body, чтобы предотвратить прокрутку всей страницы */
+        body { font-family: 'Inter', sans-serif; background-color: #F7F7F8; overflow: hidden; }
         .logo-gradient-text { background: linear-gradient(90deg, #D946EF, #8B5CF6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .cta-button { background: linear-gradient(90deg, #D946EF, #8B5CF6); color: white; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
         .cta-button:hover { box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.5), 0 0 15px rgba(217, 70, 239, 0.3); transform: translateY(-3px) scale(1.05); }
@@ -29,16 +30,17 @@
     </style>
 </head>
 <body class="text-gray-900">
-    <main class="w-screen min-h-screen grid grid-cols-1 md:grid-cols-2">
+    <!-- ИЗМЕНЕНИЕ: h-screen вместо min-h-screen для фиксации высоты -->
+    <main class="w-screen h-screen grid grid-cols-1 md:grid-cols-2">
         <!-- Left Visual Panel -->
-        <div id="visual-panel" class="hidden md:flex items-center justify-center p-8 relative overflow-hidden">
+        <div id="visual-panel" class="hidden md:flex items-center justify-center p-8 relative overflow-hidden h-full">
             <div id="visual-welcome" class="visual-content text-center opacity-100"><img src="welcome.svg" alt="Welcome Illustration" class="w-[34rem] h-[34rem] mx-auto mb-4" onerror="this.onerror=null;this.src='https://placehold.co/544x544/E9D5FF/4C1D95?text=Welcome';"><h2 class="text-3xl font-bold text-gray-700">Global Beauty Rank</h2><p class="text-gray-500 mt-2">Discover your beauty score with our AI.</p></div>
             <div id="visual-data" class="visual-content text-center opacity-0 hidden"><img src="data-form.svg" alt="Data Input Illustration" class="w-[34rem] h-[34rem] mx-auto mb-4" onerror="this.onerror=null;this.src='https://placehold.co/544x544/E9D5FF/4C1D95?text=Data';"><h2 class="text-3xl font-bold text-gray-700">Just a few questions...</h2><p class="text-gray-500 mt-2">This will help us determine your score more accurately.</p></div>
             <div id="visual-upload" class="visual-content text-center opacity-0 hidden"><img src="selfie-upload.svg" alt="Upload Selfie Illustration" class="w-[34rem] h-[34rem] mx-auto mb-4" onerror="this.onerror=null;this.src='https://placehold.co/544x544/E9D5FF/4C1D95?text=Upload';"><h2 class="text-3xl font-bold text-gray-700">Time for a selfie!</h2><p class="text-gray-500 mt-2">Upload a photo where your face is clearly visible.</p></div>
             <img id="image-preview" class="visual-content max-h-full max-w-full object-contain rounded-2xl shadow-lg opacity-0 hidden" />
         </div>
         <!-- Right Chat Panel -->
-        <div class="w-full min-h-screen flex flex-col bg-white">
+        <div class="w-full h-screen flex flex-col bg-white">
             <div class="p-4 border-b border-gray-200"><div class="w-full bg-gray-200 rounded-full h-2.5"><div id="progress-bar-fill" class="bg-gradient-to-r from-pink-500 to-purple-500 h-2.5 rounded-full transition-width duration-500" style="width: 0%"></div></div></div>
             <div id="chat-log" class="flex-grow p-6 space-y-6 overflow-y-auto"></div>
             <div id="input-area" class="p-4 border-t border-gray-200 bg-gray-50"></div>
@@ -245,7 +247,6 @@
             }
         }
         
-        // ИЗМЕНЕНИЕ: Полностью новая функция для отображения результатов
         function renderResult(result) {
             const container = document.createElement('div');
             container.className = 'flex items-start gap-3 chat-bubble-wrapper self-start w-full';
@@ -262,6 +263,7 @@
                 resultContainer.innerHTML = `<h2 class="text-2xl font-bold tracking-tight">Analysis Error</h2><p class="text-gray-600 mt-2">Unfortunately, the AI analyzer is not responding right now. Please try again a little later.</p><button onclick="location.reload()" class="cta-button font-bold text-lg px-8 py-3 rounded-xl mt-6">Try Again</button>`;
             } else {
                 const smileText = result.smileLevel > 50 ? 'Yes' : 'No';
+                // ИЗМЕНЕНИЕ: Убран раздел "Skin Health"
                 resultContainer.innerHTML = `
                     <h2 class="text-2xl font-bold tracking-tight text-center">Your Full Analysis</h2>
                     <div class="text-center my-4">
@@ -272,8 +274,7 @@
                     <div class="grid grid-cols-2 gap-4 text-sm mt-6 border-t border-indigo-100 pt-4">
                         <div class="flex items-center gap-2"><svg class="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg><div><p class="font-bold">Estimated Age</p><p class="text-gray-600">${result.age}</p></div></div>
                         <div class="flex items-center gap-2"><svg class="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><div><p class="font-bold">Emotion</p><p class="text-gray-600">${result.emotion}</p></div></div>
-                        <div class="flex items-center gap-2"><svg class="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg><div><p class="font-bold">Skin Health</p><p class="text-gray-600">${result.skinHealth.toFixed(1)} / 100</p></div></div>
-                        <div class="flex items-center gap-2"><svg class="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg><div><p class="font-bold">Smiling?</p><p class="text-gray-600">${smileText}</p></div></div>
+                        <div class="flex items-center gap-2 col-span-2"><svg class="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg><div><p class="font-bold">Smiling?</p><p class="text-gray-600">${smileText}</p></div></div>
                     </div>
                     <button onclick="location.reload()" class="cta-button w-full font-bold text-lg px-8 py-3 rounded-xl mt-8">Try Again</button>
                 `;
