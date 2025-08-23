@@ -67,10 +67,9 @@
         // ВАЖНО: Вставьте сюда ваш ПУБЛИКУЕМЫЙ ключ от Stripe
         const STRIPE_PUBLISHABLE_KEY = "pk_live_YOUR_PUBLISHABLE_KEY";
 
-        // Используем полный URL для вызова функций
-        const siteUrl = "https://frabjous-gaufre-0a4dc3.netlify.app";
-        const createPaymentIntentUrl = `${siteUrl}/.netlify/functions/createPaymentIntent`;
-        const analyzeImageUrl = `${siteUrl}/.netlify/functions/analyzeImage`;
+        // ИЗМЕНЕНИЕ: Используем относительные пути. Это самое надежное решение.
+        const createPaymentIntentUrl = `/.netlify/functions/createPaymentIntent`;
+        const analyzeImageUrl = `/.netlify/functions/analyzeImage`;
 
         const chatLog = document.getElementById('chat-log');
         const inputArea = document.getElementById('input-area');
@@ -81,7 +80,6 @@
         const userData = { base64Image: null };
         let stripe, elements;
 
-        // ИЗМЕНЕНИЕ: Шаг с выбором страны удален
         const quizSteps = [
             { id: 'welcome', type: 'message', text: "Hello! I'm your personal AI assistant. Ready to discover your beauty score?" },
             { id: 'privacy', type: 'message', text: "Great! But first, something important: your photos are only used for analysis and are deleted immediately after calculation. Your privacy is guaranteed." },
@@ -108,7 +106,7 @@
                 const response = await fetch(analyzeImageUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ image: userData.base64Image, userData: userData }) // userData теперь содержит страну
+                    body: JSON.stringify({ image: userData.base64Image, userData: userData })
                 });
 
                 if (!response.ok) {
@@ -148,16 +146,13 @@
 
             try {
                 stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
-                // ИЗМЕНЕНИЕ: Отправляем пустой POST-запрос, т.к. сервер сам определит страну
                 const response = await fetch(createPaymentIntentUrl, { 
                     method: 'POST'
                 });
                 const { clientSecret, amount, currency, country } = await response.json();
                 
-                // Сохраняем определенную сервером страну
                 userData.country = country;
 
-                // Обновляем цену на странице
                 const formattedPrice = new Intl.NumberFormat('en-US', { style: 'currency', currency: currency.toUpperCase() }).format(amount / 100);
                 document.getElementById('payment-amount-display').textContent = formattedPrice;
                 document.querySelector('#submit-payment span').textContent = `Pay ${formattedPrice} and get result`;
@@ -225,7 +220,7 @@
             let activeVisualId;
             if (['welcome', 'privacy', 'disclaimer', 'terms'].includes(stepId)) {
                 activeVisualId = 'visual-welcome';
-            } else if (['name', 'gender', 'age'].includes(stepId)) { // 'country' removed
+            } else if (['name', 'gender', 'age'].includes(stepId)) {
                 activeVisualId = 'visual-data';
             } else if (stepId === 'upload') {
                 activeVisualId = 'visual-upload';
