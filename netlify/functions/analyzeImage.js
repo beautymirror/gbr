@@ -1,11 +1,21 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const admin = require("firebase-admin");
 
-// ВАЖНО: Ваш API ключ Gemini будет храниться в Netlify
 const geminiApiKey = process.env.GEMINI_API_KEY;
 const genAI = new GoogleGenerativeAI(geminiApiKey);
 const model = genAI.getGenerativeModel({ model: "gemini-pro-vision" });
 
+// Инициализируем Firebase только один раз
+if (!admin.apps.length) {
+  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
+}
+const db = admin.firestore();
+
 exports.handler = async (event, context) => {
+  // ИСПРАВЛЕНИЕ: Добавлены заголовки для CORS
   const headers = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "Content-Type",
@@ -21,10 +31,9 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    // Получаем только изображение из запроса
-    const { image } = JSON.parse(event.body);
-    if (!image) {
-      throw new Error("Missing image data.");
+    const { image, userData } = JSON.parse(event.body);
+    if (!image || !userData) {
+      throw new Error("Missing image or user data.");
     }
 
     const prompt = "Оцени красоту человека на этом фото по шкале от 1.0 до 10.0. В ответе верни ТОЛЬКО число, например: 8.7. Никаких других слов или объяснений.";
@@ -37,8 +46,18 @@ exports.handler = async (event, context) => {
     if (isNaN(score)) {
       throw new Error("AI returned a non-numeric score.");
     }
-    
-    // Просто возвращаем результат в браузер
+
+    const finalResult = {
+      name: userData.name || "Anonymous",
+      country: userData.country || "Unknown",
+      gender: userData.gender || "Not specified",
+      age: userData.age || "Not specified",
+      score: score,
+      timestamp: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    await db.collection("rankings").add(finalResult);
+
     return {
       statusCode: 200,
       headers,
