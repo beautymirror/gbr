@@ -1,8 +1,6 @@
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 // --- СПИСКИ СТРАН ДЛЯ РАЗНЫХ ЦЕН ---
-
-// Группа 1: Страны с высоким уровнем жизни ($4.99)
 const highIncomeCountries = [
   "AD", "AE", "AG", "AU", "AT", "BS", "BH", "BB", "BE", "BN",
   "CA", "CL", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE",
@@ -11,8 +9,6 @@ const highIncomeCountries = [
   "PL", "PT", "QA", "SM", "SA", "SG", "SK", "SI", "ES", "SE",
   "CH", "TW", "GB", "US", "UY"
 ];
-
-// Группа 2: Развивающиеся страны ($2.49)
 const developingCountries = [
   "AL", "DZ", "AO", "AR", "AM", "AZ", "BD", "BY", "BZ", "BJ",
   "BT", "BO", "BA", "BW", "BR", "BG", "BF", "BI", "KH", "CM",
@@ -28,8 +24,6 @@ const developingCountries = [
   "SZ", "SY", "TJ", "TZ", "TH", "TL", "TG", "TO", "TN", "TR",
   "TM", "TV", "UG", "UA", "UZ", "VU", "VN", "YE", "ZM", "ZW"
 ];
-
-// --- ЛОГИКА ФУНКЦИИ ---
 
 exports.handler = async (event, context) => {
   const headers = {
@@ -47,17 +41,17 @@ exports.handler = async (event, context) => {
   }
   
   try {
-    const countryCode = context.geo.country.code;
-    const countryName = context.geo.country.name;
+    // ИСПРАВЛЕНИЕ: Добавлена проверка на наличие геолокации
+    const countryCode = context.geo?.country?.code;
+    const countryName = context.geo?.country?.name || "Unknown";
     let amount;
 
-    // Определяем цену на основе страны
     if (highIncomeCountries.includes(countryCode)) {
-      amount = 499; // $4.99
+      amount = 499;
     } else if (developingCountries.includes(countryCode)) {
-      amount = 249; // $2.49
+      amount = 249;
     } else {
-      amount = 99;  // $0.99 для всех остальных
+      amount = 99;
     }
 
     const currency = "usd";
