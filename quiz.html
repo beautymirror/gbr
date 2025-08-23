@@ -63,7 +63,10 @@
         let stripe, elements, cardElement;
         let preAnalyzedResult = null;
 
-        // ИЗМЕНЕНИЕ: Добавлен шаг 'profession'
+        const countries = ["Andorra", "United Arab Emirates", "Afghanistan", "Antigua and Barbuda", "Anguilla", "Albania", "Armenia", "Angola", "Antarctica", "Argentina", "American Samoa", "Austria", "Australia", "Aruba", "Åland Islands", "Azerbaijan", "Bosnia and Herzegovina", "Barbados", "Bangladesh", "Belgium", "Burkina Faso", "Bulgaria", "Bahrain", "Burundi", "Benin", "Saint Barthélemy", "Bermuda", "Brunei", "Bolivia", "Caribbean Netherlands", "Brazil", "Bahamas", "Bhutan", "Bouvet Island", "Botswana", "Belarus", "Belize", "Canada", "Cocos (Keeling) Islands", "DR Congo", "Central African Republic", "Republic of the Congo", "Switzerland", "Côte d'Ivoire (Ivory Coast)", "Cook Islands", "Chile", "Cameroon", "China", "Colombia", "Costa Rica", "Cuba", "Cape Verde", "Curaçao", "Christmas Island", "Cyprus", "Czechia", "Germany", "Djibouti", "Denmark", "Dominica", "Dominican Republic", "Algeria", "Ecuador", "Estonia", "Egypt", "Western Sahara", "Eritrea", "Spain", "Ethiopia", "Finland", "Fiji", "Falkland Islands", "Micronesia", "Faroe Islands", "France", "Gabon", "United Kingdom", "Grenada", "Georgia", "French Guiana", "Guernsey", "Ghana", "Gibraltar", "Greenland", "Gambia", "Guinea", "Guadeloupe", "Equatorial Guinea", "Greece", "South Georgia", "Guatemala", "Guam", "Guinea-Bissau", "Guyana", "Hong Kong", "Heard Island and McDonald Islands", "Honduras", "Croatia", "Haiti", "Hungary", "Indonesia", "Ireland", "Israel", "Isle of Man", "India", "British Indian Ocean Territory", "Iraq", "Iran", "Iceland", "Italy", "Jersey", "Jamaica", "Jordan", "Japan", "Kenya", "Kyrgyzstan", "Cambodia", "Kiribati", "Comoros", "Saint Kitts and Nevis", "North Korea", "South Korea", "Kuwait", "Cayman Islands", "Kazakhstan", "Laos", "Lebanon", "Saint Lucia", "Liechtenstein", "Sri Lanka", "Liberia", "Lesotho", "Lithuania", "Luxembourg", "Latvia", "Libya", "Morocco", "Monaco", "Moldova", "Montenegro", "Saint Martin", "Madagascar", "Marshall Islands", "North Macedonia", "Mali", "Myanmar", "Mongolia", "Macau", "Northern Mariana Islands", "Martinique", "Mauritania", "Montserrat", "Malta", "Mauritius", "Maldives", "Malawi", "Mexico", "Malaysia", "Mozambique", "Namibia", "New Caledonia", "Niger", "Norfolk Island", "Nigeria", "Nicaragua", "Netherlands", "Norway", "Nepal", "Nauru", "Niue", "New Zealand", "Oman", "Panama", "Peru", "French Polynesia", "Papua New Guinea", "Philippines", "Pakistan", "Poland", "Saint Pierre and Miquelon", "Pitcairn Islands", "Puerto Rico", "Palestine", "Portugal", "Palau", "Paraguay", "Qatar", "Réunion", "Romania", "Serbia", "Russia", "Rwanda", "Saudi Arabia", "Solomon Islands", "Seychelles", "Sudan", "Sweden", "Singapore", "Saint Helena Ascension and Tristan da Cunha", "Slovenia", "Svalbard and Jan Mayen", "Slovakia", "Sierra Leone", "San Marino", "Senegal", "Somalia", "Suriname", "South Sudan", "São Tomé and Príncipe", "El Salvador", "Sint Maarten", "Syria", "Eswatini (Swaziland)", "Turks and Caicos Islands", "Chad", "French Southern and Antarctic Lands", "Togo", "Thailand", "Tajikistan", "Tokelau", "Timor-Leste", "Turkmenistan", "Tunisia", "Tonga", "Turkey", "Trinidad and Tobago", "Tuvalu", "Taiwan", "Tanzania", "Ukraine", "Uganda", "United States Minor Outlying Islands", "United States", "Uruguay", "Uzbekistan", "Vatican City (Holy See)", "Saint Vincent and the Grenadines", "Venezuela", "British Virgin Islands", "United States Virgin Islands", "Vietnam", "Vanuatu", "Wallis and Futuna", "Samoa", "Kosovo", "Yemen", "Mayotte", "South Africa", "Zambia", "Zimbabwe"];
+        // ИЗМЕНЕНИЕ: Обновлен список профессий
+        const professions = ["Medical professional (doctor, nurse, etc.)", "Education and science (teacher, professor, scientist)", "Engineering (engineer, architect)", "Arts and entertainment (artist, musician, actor)", "Business and management (manager, entrepreneur)", "Information technology (programmer, system administrator)", "Finance and accounting (financial analyst, accountant)", "Sales and marketing (salesperson, marketer)", "Service industry (waiter, bartender)", "Sports and fitness (athlete, coach)"];
+
         const quizSteps = [
             { id: 'welcome', type: 'message', text: "Hello! I'm your personal AI assistant. Ready to discover your beauty score?" },
             { id: 'privacy', type: 'message', text: "Great! But first, something important: your photos are only used for analysis and are deleted immediately after calculation. Your privacy is guaranteed." },
@@ -71,7 +74,8 @@
             { id: 'terms', type: 'choice', text: 'Please review our <a href="terms.html" target="_blank" class="underline text-indigo-500 hover:text-indigo-400">Terms of Service</a> and <a href="policy.html" target="_blank" class="underline text-indigo-500 hover:text-indigo-400">Privacy Policy</a> before we continue.', options: [{ text: 'I agree and continue', value: 'agree' }] },
             { id: 'name', type: 'text', text: "Perfect! Let's get started. What's your name?" },
             { id: 'name_greeting', type: 'message', text: 'Nice to meet you, ' },
-            { id: 'profession', type: 'text', text: "What is your profession?" },
+            { id: 'country', type: 'searchable-select', text: 'What country are you from?', options: countries },
+            { id: 'profession', type: 'select', text: "What is your profession?", options: professions },
             { id: 'gender', type: 'choice', text: "Got it. Now, please select your gender.", options: [{ text: 'Male', value: 'male' }, { text: 'Female', value: 'female' }] },
             { id: 'age', type: 'select', text: "Thank you. And your age range?", options: ['Under 18', '18-25', '25-35', '36-44', '45-59', '60+'] },
             { id: 'upload', type: 'file', text: "Super! Now, please upload your best selfie. Make sure your face is clearly visible, without glasses or heavy makeup." },
@@ -135,7 +139,9 @@
             try {
                 stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
                 const response = await fetch(createPaymentIntentUrl, { 
-                    method: 'POST'
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ country: userData.country })
                 });
 
                 if (!response.ok) {
@@ -266,7 +272,7 @@
             let activeVisualId;
             if (['welcome', 'privacy', 'disclaimer', 'terms'].includes(stepId)) {
                 activeVisualId = 'visual-welcome';
-            } else if (['name', 'gender', 'age', 'profession'].includes(stepId)) {
+            } else if (['name', 'gender', 'age', 'profession', 'country'].includes(stepId)) {
                 activeVisualId = 'visual-data';
             } else if (stepId === 'upload') {
                 activeVisualId = 'visual-upload';
@@ -360,7 +366,8 @@
             switch (step.type) {
                 case 'choice': renderChoices(step.options); break;
                 case 'select': renderSelect(step.options); break;
-                case 'text': renderTextInput(step.id); break; // Передаем id для плейсхолдера
+                case 'searchable-select': renderSearchableSelect(step.options); break;
+                case 'text': renderTextInput(step.id); break;
                 case 'file': renderFileUpload(); break;
                 case 'payment': renderPayment(); break;
                 case 'message': default: currentStep++; setTimeout(handleStep, 500); break;
@@ -440,6 +447,45 @@
             };
             inputArea.appendChild(form);
             input.focus();
+        }
+
+        function renderSearchableSelect(options) {
+            const container = document.createElement('div');
+            container.className = 'w-full';
+            const searchInput = document.createElement('input');
+            searchInput.type = 'text';
+            searchInput.placeholder = 'Search for a country...';
+            searchInput.className = 'w-full p-4 border border-gray-300 rounded-lg text-lg focus:ring-2 focus:ring-purple-400 focus:border-purple-400 mb-2';
+            const resultsContainer = document.createElement('div');
+            resultsContainer.className = 'bg-white border border-gray-300 rounded-lg max-h-48 overflow-y-auto';
+            const populateList = (filter = '') => {
+                resultsContainer.innerHTML = '';
+                const filteredOptions = options.filter(opt => opt.toLowerCase().includes(filter.toLowerCase()));
+                if (filteredOptions.length === 0) {
+                    const noResult = document.createElement('div');
+                    noResult.className = 'p-3 text-gray-500';
+                    noResult.textContent = 'No results found';
+                    resultsContainer.appendChild(noResult);
+                } else {
+                    filteredOptions.forEach(option => {
+                        const optionEl = document.createElement('div');
+                        optionEl.className = 'p-3 cursor-pointer hover:bg-gray-100 transition-colors';
+                        optionEl.textContent = option;
+                        optionEl.onclick = () => {
+                            proceedToNextStep(option, option);
+                        };
+                        resultsContainer.appendChild(optionEl);
+                    });
+                }
+            };
+            searchInput.oninput = () => {
+                populateList(searchInput.value);
+            };
+            container.appendChild(searchInput);
+            container.appendChild(resultsContainer);
+            inputArea.appendChild(container);
+            populateList();
+            searchInput.focus();
         }
 
         function resizeAndEncodeImage(file) {
