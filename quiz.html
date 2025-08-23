@@ -40,17 +40,12 @@
         <!-- Right Chat Panel -->
         <div class="w-full h-full flex flex-col bg-white overflow-hidden">
             <div class="p-4 border-b border-gray-200"><div class="w-full bg-gray-200 rounded-full h-2.5"><div id="progress-bar-fill" class="bg-gradient-to-r from-pink-500 to-purple-500 h-2.5 rounded-full transition-width duration-500" style="width: 0%"></div></div></div>
-            <!-- ИЗМЕНЕНИЕ: Добавлен класс min-h-0 для корректной работы flex-grow на мобильных -->
             <div id="chat-log" class="flex-grow p-6 space-y-6 overflow-y-auto min-h-0"></div>
             <div id="input-area" class="p-4 border-t border-gray-200 bg-gray-50 flex-shrink-0"></div>
         </div>
     </main>
 
     <script type="module">
-        // Firebase больше не нужен в этом файле, так как запись происходит на сервере
-        // import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        // import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
         // Вставлен ваш публичный ключ Stripe
         const STRIPE_PUBLISHABLE_KEY = "pk_live_51PQ7mLA19LNOHDEO1yMYpJ3B74vO6GdJD0No0qRpsDBo5Xw956DxQMayJWUZjlNEo6S1WdEWY2Hr6ysFkLI4386I00vkmegPBL";
 
@@ -68,6 +63,7 @@
         let stripe, elements, cardElement;
         let preAnalyzedResult = null;
 
+        // ИЗМЕНЕНИЕ: Добавлен шаг 'profession'
         const quizSteps = [
             { id: 'welcome', type: 'message', text: "Hello! I'm your personal AI assistant. Ready to discover your beauty score?" },
             { id: 'privacy', type: 'message', text: "Great! But first, something important: your photos are only used for analysis and are deleted immediately after calculation. Your privacy is guaranteed." },
@@ -75,6 +71,7 @@
             { id: 'terms', type: 'choice', text: 'Please review our <a href="terms.html" target="_blank" class="underline text-indigo-500 hover:text-indigo-400">Terms of Service</a> and <a href="policy.html" target="_blank" class="underline text-indigo-500 hover:text-indigo-400">Privacy Policy</a> before we continue.', options: [{ text: 'I agree and continue', value: 'agree' }] },
             { id: 'name', type: 'text', text: "Perfect! Let's get started. What's your name?" },
             { id: 'name_greeting', type: 'message', text: 'Nice to meet you, ' },
+            { id: 'profession', type: 'text', text: "What is your profession?" },
             { id: 'gender', type: 'choice', text: "Got it. Now, please select your gender.", options: [{ text: 'Male', value: 'male' }, { text: 'Female', value: 'female' }] },
             { id: 'age', type: 'select', text: "Thank you. And your age range?", options: ['Under 18', '18-25', '25-35', '36-44', '45-59', '60+'] },
             { id: 'upload', type: 'file', text: "Super! Now, please upload your best selfie. Make sure your face is clearly visible, without glasses or heavy makeup." },
@@ -269,7 +266,7 @@
             let activeVisualId;
             if (['welcome', 'privacy', 'disclaimer', 'terms'].includes(stepId)) {
                 activeVisualId = 'visual-welcome';
-            } else if (['name', 'gender', 'age'].includes(stepId)) {
+            } else if (['name', 'gender', 'age', 'profession'].includes(stepId)) {
                 activeVisualId = 'visual-data';
             } else if (stepId === 'upload') {
                 activeVisualId = 'visual-upload';
@@ -363,7 +360,7 @@
             switch (step.type) {
                 case 'choice': renderChoices(step.options); break;
                 case 'select': renderSelect(step.options); break;
-                case 'text': renderTextInput(); break;
+                case 'text': renderTextInput(step.id); break; // Передаем id для плейсхолдера
                 case 'file': renderFileUpload(); break;
                 case 'payment': renderPayment(); break;
                 case 'message': default: currentStep++; setTimeout(handleStep, 500); break;
@@ -420,12 +417,12 @@
             inputArea.appendChild(select);
         }
         
-        function renderTextInput() {
+        function renderTextInput(stepId) {
             const form = document.createElement('form');
             form.className = 'flex gap-2';
             const input = document.createElement('input');
             input.type = 'text';
-            input.placeholder = 'Enter your name...';
+            input.placeholder = stepId === 'name' ? 'Enter your name...' : 'Enter your profession...';
             input.className = 'w-full p-4 border border-gray-300 rounded-lg text-lg focus:ring-2 focus:ring-purple-400 focus:border-purple-400';
             input.required = true;
             const button = document.createElement('button');
@@ -436,9 +433,9 @@
             form.appendChild(button);
             form.onsubmit = (e) => {
                 e.preventDefault();
-                const name = input.value.trim();
-                if (name) {
-                    proceedToNextStep(name, name);
+                const value = input.value.trim();
+                if (value) {
+                    proceedToNextStep(value, value);
                 }
             };
             inputArea.appendChild(form);
