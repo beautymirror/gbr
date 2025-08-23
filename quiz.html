@@ -11,7 +11,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://js.stripe.com/v3/"></script>
     <style>
-        /* ИЗМЕНЕНИЕ: overflow: hidden для body, чтобы предотвратить прокрутку всей страницы */
         body { font-family: 'Inter', sans-serif; background-color: #F7F7F8; overflow: hidden; }
         .logo-gradient-text { background: linear-gradient(90deg, #D946EF, #8B5CF6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .cta-button { background: linear-gradient(90deg, #D946EF, #8B5CF6); color: white; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
@@ -30,7 +29,6 @@
     </style>
 </head>
 <body class="text-gray-900">
-    <!-- ИЗМЕНЕНИЕ: h-screen заменен на h-dvh (динамическая высота) для лучшей работы на мобильных -->
     <main class="w-screen h-dvh grid grid-cols-1 md:grid-cols-2">
         <!-- Left Visual Panel -->
         <div id="visual-panel" class="hidden md:flex items-center justify-center p-8 relative overflow-hidden h-full">
@@ -40,7 +38,6 @@
             <img id="image-preview" class="visual-content max-h-full max-w-full object-contain rounded-2xl shadow-lg opacity-0 hidden" />
         </div>
         <!-- Right Chat Panel -->
-        <!-- ИЗМЕНЕНИЕ: h-screen удален, чтобы контейнер подстраивался под родителя -->
         <div class="w-full h-full flex flex-col bg-white">
             <div class="p-4 border-b border-gray-200"><div class="w-full bg-gray-200 rounded-full h-2.5"><div id="progress-bar-fill" class="bg-gradient-to-r from-pink-500 to-purple-500 h-2.5 rounded-full transition-width duration-500" style="width: 0%"></div></div></div>
             <div id="chat-log" class="flex-grow p-6 space-y-6 overflow-y-auto"></div>
@@ -49,23 +46,9 @@
     </main>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-        // ВАЖНО: Вставьте сюда вашу конфигурацию Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyD9R43D9ktWxYFQtpkGJNTOgdWyZqfM-bU",
-            authDomain: "global-beauty-rank.firebaseapp.com",
-            projectId: "global-beauty-rank",
-            storageBucket: "global-beauty-rank.firebasestorage.app",
-            messagingSenderId: "916586590476",
-            appId: "1:916586590476:web:039be613c177dc46491929",
-            measurementId: "G-KPWTDXMHF"
-        };
-        
-        // Инициализируем Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        // Firebase больше не нужен в этом файле, так как запись происходит на сервере
+        // import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        // import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         // Вставлен ваш публичный ключ Stripe
         const STRIPE_PUBLISHABLE_KEY = "pk_live_51PQ7mLA19LNOHDEO1yMYpJ3B74vO6GdJD0No0qRpsDBo5Xw956DxQMayJWUZjlNEo6S1WdEWY2Hr6ysFkLI4386I00vkmegPBL";
@@ -80,9 +63,9 @@
         const imagePreview = document.getElementById('image-preview');
 
         let currentStep = 0;
-        const userData = { base64Image: null };
+        const userData = {};
         let stripe, elements, cardElement;
-        let preAnalyzedResult = null; // Храним результат предварительного анализа
+        let preAnalyzedResult = null;
 
         const quizSteps = [
             { id: 'welcome', type: 'message', text: "Hello! I'm your personal AI assistant. Ready to discover your beauty score?" },
@@ -119,6 +102,8 @@
                 }
                 
                 preAnalyzedResult = resultData;
+                sessionStorage.setItem('preAnalyzedResult', JSON.stringify(preAnalyzedResult));
+
                 currentStep++;
                 handleStep();
 
@@ -163,10 +148,8 @@
                 if (!paymentData || !paymentData.clientSecret) {
                     throw new Error("Invalid response from server");
                 }
-                const { clientSecret, amount, currency, countryCode, countryName } = paymentData;
+                const { clientSecret, amount, currency, countryCode } = paymentData;
                 
-                userData.country = countryName;
-
                 const formattedPrice = new Intl.NumberFormat('en-US', { style: 'currency', currency: currency.toUpperCase() }).format(amount / 100);
                 document.getElementById('payment-amount-display').textContent = formattedPrice;
                 document.querySelector('#submit-payment span').textContent = `Pay ${formattedPrice}`;
@@ -198,63 +181,17 @@
                     document.getElementById('payment-request-button').style.display = 'none';
                 }
 
-                const handleSuccessfulPayment = async () => {
-                    try {
-                        await addDoc(collection(db, "rankings"), {
-                            ...userData,
-                            score: preAnalyzedResult.score,
-                            timestamp: serverTimestamp()
-                        });
-                    } catch (dbError) {
-                        console.error("Firestore write error:", dbError);
-                    }
-                    currentStep++;
-                    handleStep();
-                };
-
-                paymentRequest.on('paymentmethod', async (ev) => {
-                    const { paymentIntent, error: confirmError } = await stripe.confirmCardPayment(
-                        clientSecret,
-                        { payment_method: ev.paymentMethod.id },
-                        { handleActions: false }
-                    );
-
-                    if (confirmError) {
-                        ev.complete('fail');
-                        addBotMessage(confirmError.message, true);
-                    } else {
-                        ev.complete('success');
-                        if (paymentIntent.status === "requires_action") {
-                            const { error } = await stripe.confirmCardPayment(clientSecret);
-                            if (error) {
-                                addBotMessage("Payment failed. Please try again.", true);
-                            } else {
-                                handleSuccessfulPayment();
-                            }
-                        } else {
-                            handleSuccessfulPayment();
-                        }
-                    }
-                });
-
                 form.addEventListener('submit', async (e) => {
                     e.preventDefault();
-                    const submitButton = document.getElementById('submit-payment');
-                    submitButton.disabled = true;
-                    submitButton.innerHTML = `<div class="animate-spin h-5 w-5 mx-auto border-2 border-white border-t-transparent rounded-full"></div>`;
-                    
-                    const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-                        payment_method: {
-                            card: cardElement,
+                    const { error } = await stripe.confirmPayment({
+                        elements,
+                        confirmParams: {
+                            return_url: window.location.href.split('?')[0],
                         },
                     });
 
                     if (error) {
                         document.getElementById('card-errors').textContent = error.message;
-                        submitButton.disabled = false;
-                        submitButton.innerHTML = `<span>Pay ${formattedPrice}</span>`;
-                    } else if (paymentIntent.status === 'succeeded') {
-                        handleSuccessfulPayment();
                     }
                 });
 
@@ -292,6 +229,35 @@
             container.appendChild(resultContainer);
             chatLog.appendChild(container);
             scrollToBottom();
+        }
+
+        async function checkPaymentStatus() {
+            const clientSecret = new URLSearchParams(window.location.search).get(
+                "payment_intent_client_secret"
+            );
+
+            if (!clientSecret) {
+                return;
+            }
+            
+            if (!stripe) {
+                stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
+            }
+
+            const { paymentIntent } = await stripe.retrievePaymentIntent(clientSecret);
+
+            if (paymentIntent.status === 'succeeded') {
+                const savedResult = JSON.parse(sessionStorage.getItem('preAnalyzedResult'));
+
+                if (savedResult) {
+                    preAnalyzedResult = savedResult;
+                    currentStep = quizSteps.findIndex(step => step.id === 'result');
+                    handleStep();
+                    sessionStorage.removeItem('preAnalyzedResult');
+                } else {
+                   addBotMessage("Could not retrieve your analysis result after payment. Please contact support.", true);
+                }
+            }
         }
 
         function updateVisualPanel(stepId) {
@@ -613,8 +579,11 @@
             };
         }
         
-        handleStep();
-
+        checkPaymentStatus().then(() => {
+            if (currentStep === 0 && !new URLSearchParams(window.location.search).has("payment_intent_client_secret")) {
+                handleStep();
+            }
+        });
     </script>
 </body>
 </html>
