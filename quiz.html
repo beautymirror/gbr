@@ -140,7 +140,7 @@
             paymentBubble.className = 'bot-bubble max-w-md p-4 sm:p-6 rounded-2xl rounded-bl-lg w-full';
             const form = document.createElement('form');
             form.id = 'payment-form';
-            form.innerHTML = `<div class="flex justify-between items-start"><div><h3 class="font-bold text-lg text-indigo-800">Special offer</h3><p class="text-sm text-indigo-700">NOW ONLY FOR YOU</p></div><div class="text-right"><p class="text-gray-400 line-through">$15.00</p><p class="text-2xl font-bold text-indigo-800">$4.50</p></div></div><div class="my-4 flex justify-center"><img src="payment.svg" alt="Payment methods" class="h-24" onerror="this.onerror=null;this.src='https://placehold.co/250x50/FFFFFF/333333?text=VISA+Mastercard+Amex';"></div><div id="card-element" class="bg-white p-3 rounded-lg border border-indigo-200"></div><div id="card-errors" role="alert" class="text-red-500 text-sm mt-2 h-4"></div><button id="submit-payment" class="w-full mt-4 cta-button font-bold text-lg px-8 py-3 rounded-xl"><span>Pay $4.50 and get result</span></button>`;
+            form.innerHTML = `<div class="flex justify-between items-start"><div><h3 class="font-bold text-lg text-indigo-800">Special offer</h3><p class="text-sm text-indigo-700">NOW ONLY FOR YOU</p></div><div class="text-right"><p class="text-gray-400 line-through">$15.00</p><p class="text-2xl font-bold text-indigo-800">$1</p></div></div><div class="my-4 flex justify-center"><img src="payment.svg" alt="Payment methods" class="h-24" onerror="this.onerror=null;this.src='https://placehold.co/250x50/FFFFFF/333333?text=VISA+Mastercard+Amex';"></div><div id="card-element" class="bg-white p-3 rounded-lg border border-indigo-200"></div><div id="card-errors" role="alert" class="text-red-500 text-sm mt-2 h-4"></div><button id="submit-payment" class="w-full mt-4 cta-button font-bold text-lg px-8 py-3 rounded-xl"><span>Pay $1 and get result</span></button>`;
             paymentBubble.appendChild(form);
             container.appendChild(avatar);
             container.appendChild(paymentBubble);
@@ -181,7 +181,7 @@
                 if (error) {
                     document.getElementById('card-errors').textContent = error.message;
                     submitButton.disabled = false;
-                    submitButton.innerHTML = `<span>Pay $4.50 and get result</span>`;
+                    submitButton.innerHTML = `<span>Pay $1 and get result</span>`;
                 } else if (paymentIntent.status === 'succeeded') {
                     proceedToNextStep({ payment: 'success' }, 'Payment successful');
                 }
@@ -510,4 +510,5 @@
     </script>
 </body>
 </html>
+
 
