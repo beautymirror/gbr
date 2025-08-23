@@ -1,13 +1,18 @@
+const admin = require("firebase-admin");
 const fetch = require("node-fetch");
 
-// Firebase больше не нужен в этой функции
-// const admin = require("firebase-admin");
-// ...
-
-const getDominantEmotion = (emotions) => {
-    if (!emotions) return 'Neutral';
-    return Object.keys(emotions).reduce((a, b) => emotions[a] > emotions[b] ? a : b);
-};
+// Инициализируем Firebase только один раз
+if (!admin.apps.length) {
+  try {
+    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
+  } catch (e) {
+    console.error("Firebase admin initialization error", e);
+  }
+}
+const db = admin.firestore();
 
 exports.handler = async (event, context) => {
   const headers = {
@@ -48,15 +53,12 @@ exports.handler = async (event, context) => {
     const faceData = await faceResponse.json();
 
     if (faceData.error_message) {
-        // Если есть ошибка от API, отправляем ее на сайт
         throw new Error(faceData.error_message);
     }
     if (!faceData.faces || faceData.faces.length === 0) {
-        // Если лицо не найдено, это тоже ошибка
         throw new Error("No face detected in the image. Please use a clear, forward-facing photo.");
     }
      if (faceData.faces.length > 1) {
-        // Если найдено больше одного лица
         throw new Error("More than one face detected. Please use a photo of just yourself.");
     }
 
@@ -71,7 +73,15 @@ exports.handler = async (event, context) => {
       rank: "Your analysis is complete!"
     };
     
-    // ИЗМЕНЕНИЕ: Мы больше не сохраняем в базу. Просто возвращаем результат.
+    // ИЗМЕНЕНИЕ: Сразу сохраняем все данные в базу данных
+    const finalResultForDb = {
+      ...userData,
+      score: score,
+      timestamp: admin.firestore.FieldValue.serverTimestamp(),
+    };
+    await db.collection("rankings").add(finalResultForDb);
+
+    // Возвращаем результат на сайт для отображения после оплаты
     return {
       statusCode: 200,
       headers,
@@ -80,7 +90,7 @@ exports.handler = async (event, context) => {
   } catch (error) {
     console.error("Analysis Error:", error);
     return {
-      statusCode: 500, // Используем 500 для серверных ошибок
+      statusCode: 500,
       headers,
       body: JSON.stringify({ error: error.toString() }),
     };
