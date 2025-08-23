@@ -67,7 +67,7 @@
         // ВАЖНО: Вставьте сюда ваш ПУБЛИКУЕМЫЙ ключ от Stripe
         const STRIPE_PUBLISHABLE_KEY = "pk_live_YOUR_PUBLISHABLE_KEY";
 
-        // ИЗМЕНЕНИЕ: Используем относительные пути. Это самое надежное решение.
+        // Используем относительные пути. Это самое надежное решение.
         const createPaymentIntentUrl = `/.netlify/functions/createPaymentIntent`;
         const analyzeImageUrl = `/.netlify/functions/analyzeImage`;
 
@@ -149,6 +149,11 @@
                 const response = await fetch(createPaymentIntentUrl, { 
                     method: 'POST'
                 });
+
+                if (!response.ok) {
+                    throw new Error(`Server responded with ${response.status}`);
+                }
+
                 const { clientSecret, amount, currency, country } = await response.json();
                 
                 userData.country = country;
