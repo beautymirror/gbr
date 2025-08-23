@@ -19,7 +19,7 @@ exports.handler = async (event, context) => {
   }
   
   try {
-    const amount = 450; // $4.50
+    const amount = 1; // цена в центах
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amount,
       currency: "usd",
