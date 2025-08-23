@@ -11,7 +11,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://js.stripe.com/v3/"></script>
     <style>
-        /* ИЗМЕНЕНИЕ: overflow: hidden для body, чтобы предотвратить прокрутку всей страницы */
         body { font-family: 'Inter', sans-serif; background-color: #F7F7F8; overflow: hidden; }
         .logo-gradient-text { background: linear-gradient(90deg, #D946EF, #8B5CF6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .cta-button { background: linear-gradient(90deg, #D946EF, #8B5CF6); color: white; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
@@ -30,7 +29,6 @@
     </style>
 </head>
 <body class="text-gray-900">
-    <!-- ИЗМЕНЕНИЕ: h-screen вместо min-h-screen для фиксации высоты -->
     <main class="w-screen h-screen grid grid-cols-1 md:grid-cols-2">
         <!-- Left Visual Panel -->
         <div id="visual-panel" class="hidden md:flex items-center justify-center p-8 relative overflow-hidden h-full">
@@ -81,6 +79,7 @@
         let currentStep = 0;
         const userData = { base64Image: null };
         let stripe, elements, cardElement;
+        let preAnalyzedResult = null; // Храним результат предварительного анализа
 
         const quizSteps = [
             { id: 'welcome', type: 'message', text: "Hello! I'm your personal AI assistant. Ready to discover your beauty score?" },
@@ -92,13 +91,13 @@
             { id: 'gender', type: 'choice', text: "Got it. Now, please select your gender.", options: [{ text: 'Male', value: 'male' }, { text: 'Female', value: 'female' }] },
             { id: 'age', type: 'select', text: "Thank you. And your age range?", options: ['Under 18', '18-25', '25-35', '36-44', '45-59', '60+'] },
             { id: 'upload', type: 'file', text: "Super! Now, please upload your best selfie. Make sure your face is clearly visible, without glasses or heavy makeup." },
-            { id: 'upload_compliment', type: 'message', text: 'Wow, you are very beautiful! Now for the final step.' },
-            { id: 'payment', type: 'payment', text: 'Almost done. The last step is a secure payment.' },
-            { id: 'calculating', type: 'message', text: "Thank you! Sending your photo to the neural network for analysis... This may take a few seconds." },
+            // ИЗМЕНЕНИЕ: Новый шаг для предварительного анализа
+            { id: 'pre_analyzing', type: 'message', text: "Thank you! Pre-analyzing your photo to make sure it's valid..." },
+            { id: 'payment', type: 'payment', text: 'Great, your photo is valid! The last step is a secure payment to unlock your result.' },
             { id: 'result', type: 'result' }
         ];
         
-        async function getAIScore() {
+        async function preAnalyzePhoto() {
             if (!userData.base64Image) {
                 await addBotMessage("It seems there was an error with the photo upload. Please try again.", true);
                 return;
@@ -111,19 +110,24 @@
                     body: JSON.stringify({ image: userData.base64Image, userData: userData })
                 });
 
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(`Function Error: ${response.statusText} - ${errorData.error || 'Unknown error'}`);
-                }
+                const resultData = await response.json();
 
-                const aiResult = await response.json();
+                if (!response.ok) {
+                    // Если сервер вернул ошибку, показываем ее пользователю
+                    throw new Error(resultData.error || `Server responded with ${response.status}`);
+                }
                 
-                renderResult(aiResult);
+                // Сохраняем успешный результат и переходим к оплате
+                preAnalyzedResult = resultData;
+                currentStep++;
+                handleStep();
 
             } catch (error) {
-                console.error("AI Score Error:", error);
-                await addBotMessage("Unfortunately, the AI analyzer is not responding right now. Please try again a little later.", true);
-                renderResult({error: true});
+                console.error("Pre-analysis Error:", error);
+                // Показываем ошибку и возвращаем к шагу загрузки
+                await addBotMessage(`Analysis failed: ${error.message}. Please try a different photo.`, true);
+                currentStep = quizSteps.findIndex(step => step.id === 'upload');
+                handleStep();
             }
         }
         
@@ -195,6 +199,21 @@
                     document.getElementById('payment-request-button').style.display = 'none';
                 }
 
+                const handleSuccessfulPayment = async () => {
+                    // После успешной оплаты сохраняем результат в базу и показываем его
+                    try {
+                        await addDoc(collection(db, "rankings"), {
+                            ...userData,
+                            score: preAnalyzedResult.score,
+                            timestamp: serverTimestamp()
+                        });
+                    } catch (dbError) {
+                        console.error("Firestore write error:", dbError);
+                    }
+                    currentStep++;
+                    handleStep();
+                };
+
                 paymentRequest.on('paymentmethod', async (ev) => {
                     const { paymentIntent, error: confirmError } = await stripe.confirmCardPayment(
                         clientSecret,
@@ -212,10 +231,10 @@
                             if (error) {
                                 addBotMessage("Payment failed. Please try again.", true);
                             } else {
-                                proceedToNextStep({ payment: 'success' }, 'Payment successful');
+                                handleSuccessfulPayment();
                             }
                         } else {
-                            proceedToNextStep({ payment: 'success' }, 'Payment successful');
+                            handleSuccessfulPayment();
                         }
                     }
                 });
@@ -237,7 +256,7 @@
                         submitButton.disabled = false;
                         submitButton.innerHTML = `<span>Pay ${formattedPrice}</span>`;
                     } else if (paymentIntent.status === 'succeeded') {
-                        proceedToNextStep({ payment: 'success' }, 'Payment successful');
+                        handleSuccessfulPayment();
                     }
                 });
 
@@ -247,7 +266,8 @@
             }
         }
         
-        function renderResult(result) {
+        function renderResult() {
+            const result = preAnalyzedResult; // Используем сохраненный результат
             const container = document.createElement('div');
             container.className = 'flex items-start gap-3 chat-bubble-wrapper self-start w-full';
             const avatar = document.createElement('img');
@@ -259,12 +279,12 @@
             const resultContainer = document.createElement('div');
             resultContainer.className = 'bot-bubble max-w-md p-4 sm:p-6 rounded-2xl rounded-bl-lg w-full';
 
-            if (result.error) {
+            if (!result || result.error) {
                 resultContainer.innerHTML = `<h2 class="text-2xl font-bold tracking-tight text-center">Analysis Error</h2><p class="text-gray-600 mt-2">Unfortunately, the AI analyzer is not responding right now. Please try again a little later.</p><button onclick="location.reload()" class="cta-button font-bold text-lg px-8 py-3 rounded-xl mt-6">Try Again</button>`;
             } else {
                 resultContainer.innerHTML = `
                     <h2 class="text-2xl font-bold tracking-tight text-center">Your Result:</h2>
-                    <p class="text-8xl font-extrabold logo-gradient-text my-4 text-center">${result.score}</p>
+                    <p class="text-8xl font-extrabold logo-gradient-text my-4 text-center">${result.score.toFixed(1)}</p>
                     <p class="text-gray-600 text-lg text-center">${result.rank}</p>
                     <button onclick="location.reload()" class="cta-button w-full font-bold text-lg px-8 py-3 rounded-xl mt-8">Try Again</button>
                 `;
@@ -274,31 +294,6 @@
             container.appendChild(resultContainer);
             chatLog.appendChild(container);
             scrollToBottom();
-        }
-
-        async function checkPaymentStatus() {
-            const clientSecret = new URLSearchParams(window.location.search).get(
-                "payment_intent_client_secret"
-            );
-
-            if (!clientSecret) {
-                return;
-            }
-            
-            if (!stripe) {
-                stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
-            }
-
-            const { paymentIntent } = await stripe.retrievePaymentIntent(clientSecret);
-
-            if (paymentIntent.status === 'succeeded') {
-                currentStep = quizSteps.findIndex(step => step.id === 'calculating');
-                const savedUserData = localStorage.getItem('userData');
-                if(savedUserData) {
-                    Object.assign(userData, JSON.parse(savedUserData));
-                }
-                handleStep();
-            }
         }
 
         function updateVisualPanel(stepId) {
@@ -384,11 +379,18 @@
             const step = quizSteps[currentStep];
             disableInputs();
             updateVisualPanel(step.id);
-            if (step.type === 'result') {
-                await getAIScore();
-                localStorage.removeItem('userData');
+            
+            // Новый флоу: если шаг - pre_analyzing, запускаем анализ
+            if (step.id === 'pre_analyzing') {
+                await addBotMessage(step.text);
+                await preAnalyzePhoto();
                 return;
             }
+            if (step.type === 'result') {
+                renderResult();
+                return;
+            }
+
             let messageText = step.text;
             if (step.id === 'name_greeting') {
                 messageText = `${step.text}${userData.name}!`;
@@ -407,10 +409,6 @@
             const step = quizSteps[currentStep];
             userData[step.id] = data;
             
-            if(step.id === 'upload') {
-                localStorage.setItem('userData', JSON.stringify(userData));
-            }
-
             if (displayText) {
                 addUserMessage(displayText);
             }
@@ -456,30 +454,47 @@
             inputArea.appendChild(select);
         }
         
-        function renderTextInput() {
-            const form = document.createElement('form');
-            form.className = 'flex gap-2';
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.placeholder = 'Enter your name...';
-            input.className = 'w-full p-4 border border-gray-300 rounded-lg text-lg focus:ring-2 focus:ring-purple-400 focus:border-purple-400';
-            input.required = true;
-            const button = document.createElement('button');
-            button.type = 'submit';
-            button.className = 'cta-button font-bold text-lg px-6 py-3 rounded-xl';
-            button.textContent = 'Next';
-            form.appendChild(input);
-            form.appendChild(button);
-            form.onsubmit = (e) => {
-                e.preventDefault();
-                const name = input.value.trim();
-                if (name) {
-                    proceedToNextStep(name, name);
+        function resizeAndEncodeImage(file) {
+            return new Promise((resolve, reject) => {
+                if (file.size > 2 * 1024 * 1024) {
+                    return reject(new Error("File size should not exceed 2MB."));
                 }
-            };
-            inputArea.appendChild(form);
-            input.focus();
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = event => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 1024;
+                        const MAX_HEIGHT = 1024;
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > MAX_WIDTH) {
+                                height *= MAX_WIDTH / width;
+                                width = MAX_WIDTH;
+                            }
+                        } else {
+                            if (height > MAX_HEIGHT) {
+                                width *= MAX_HEIGHT / height;
+                                height = MAX_HEIGHT;
+                            }
+                        }
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                        resolve(dataUrl);
+                    }
+                    img.onerror = error => reject(error);
+                }
+                reader.onerror = error => reject(error);
+            });
         }
+
         function renderFileUpload() {
             const container = document.createElement('div');
             container.className = 'grid sm:grid-cols-2 gap-3';
@@ -496,16 +511,18 @@
             fileInput.type = 'file';
             fileInput.className = 'hidden';
             fileInput.accept = 'image/*';
-            fileInput.onchange = () => {
+            fileInput.onchange = async () => {
                 if (fileInput.files && fileInput.files[0]) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        imagePreview.src = e.target.result;
-                        userData.base64Image = e.target.result.split(',')[1]; 
+                    try {
+                        const dataUrl = await resizeAndEncodeImage(fileInput.files[0]);
+                        imagePreview.src = dataUrl;
+                        userData.base64Image = dataUrl.split(',')[1]; 
                         updateVisualPanel('image-preview');
+                        proceedToNextStep(fileInput.files[0].name, fileInput.files[0].name);
+                    } catch (error) {
+                        console.error("Image processing error:", error);
+                        addBotMessage(error.message, true);
                     }
-                    reader.readAsDataURL(fileInput.files[0]);
-                    proceedToNextStep(fileInput.files[0], fileInput.files[0].name);
                 }
             };
             container.appendChild(uploadLabel);
@@ -561,7 +578,7 @@
                 canvas.height = video.videoHeight;
                 const context = canvas.getContext('2d');
                 context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                const dataUrl = canvas.toDataURL('image/jpeg');
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
                 imagePreview.src = dataUrl;
                 userData.base64Image = dataUrl.split(',')[1]; 
                 updateVisualPanel('image-preview');
@@ -572,11 +589,8 @@
             };
         }
         
-        checkPaymentStatus().then(() => {
-            if (currentStep === 0 && !new URLSearchParams(window.location.search).has("payment_intent_client_secret")) {
-                handleStep();
-            }
-        });
+        handleStep();
+
     </script>
 </body>
 </html>
