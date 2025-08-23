@@ -1,5 +1,5 @@
 const admin = require("firebase-admin");
-const fetch = require("node-fetch"); // Используем node-fetch для запросов
+const fetch = require("node-fetch");
 
 // Инициализируем Firebase только один раз
 if (!admin.apps.length) {
@@ -13,6 +13,13 @@ if (!admin.apps.length) {
   }
 }
 const db = admin.firestore();
+
+// Функция для определения доминирующей эмоции
+const getDominantEmotion = (emotions) => {
+    if (!emotions) return 'Neutral';
+    // Находим эмоцию с самым высоким показателем
+    return Object.keys(emotions).reduce((a, b) => emotions[a] > emotions[b] ? a : b);
+};
 
 exports.handler = async (event, context) => {
   const headers = {
@@ -35,7 +42,6 @@ exports.handler = async (event, context) => {
       throw new Error("Missing image or user data.");
     }
 
-    // --- Логика для Face++ ---
     const faceplusplusUrl = "https://api-us.faceplusplus.com/facepp/v3/detect";
     const apiKey = process.env.FACEPLUSPLUS_API_KEY;
     const apiSecret = process.env.FACEPLUSPLUS_API_SECRET;
@@ -44,7 +50,8 @@ exports.handler = async (event, context) => {
     formData.append('api_key', apiKey);
     formData.append('api_secret', apiSecret);
     formData.append('image_base64', image);
-    formData.append('return_attributes', 'beauty');
+    // ИЗМЕНЕНИЕ: Запрашиваем больше атрибутов
+    formData.append('return_attributes', 'beauty,age,emotion,skinstatus,smile,gender');
 
     const faceResponse = await fetch(faceplusplusUrl, {
       method: 'POST',
@@ -60,31 +67,39 @@ exports.handler = async (event, context) => {
         throw new Error("No face detected in the image.");
     }
 
-    // Face++ возвращает оценку от 0 до 100. Мы делим на 10, чтобы получить от 1 до 10.
-    // Мы берем оценку для соответствующего пола.
-    const beautyScore = faceData.faces[0].attributes.beauty;
-    const score = (userData.gender === 'male' ? beautyScore.male_score : beautyScore.female_score) / 10;
+    const face = faceData.faces[0];
+    const attributes = face.attributes;
     
-    // --- Конец логики Face++ ---
+    // Собираем все данные
+    const beautyScore = attributes.beauty;
+    const score = (userData.gender === 'male' ? beautyScore.male_score : beautyScore.female_score) / 10;
+    const age = attributes.age.value;
+    const emotion = getDominantEmotion(attributes.emotion);
+    const smileLevel = attributes.smile.value;
+    const skinHealth = attributes.skinstatus.health;
 
-    const finalResult = {
-      name: userData.name || "Anonymous",
-      country: userData.country || "Unknown",
-      gender: userData.gender || "Not specified",
-      age: userData.age || "Not specified",
+    const fullResult = {
       score: score,
+      age: age,
+      emotion: emotion,
+      smileLevel: smileLevel,
+      skinHealth: skinHealth,
+      gender: attributes.gender.value, // Пол, определенный AI
+    };
+    
+    // Сохраняем расширенный результат в базу
+    const finalResultForDb = {
+      ...userData,
+      ...fullResult,
       timestamp: admin.firestore.FieldValue.serverTimestamp(),
     };
-
-    await db.collection("rankings").add(finalResult);
+    await db.collection("rankings").add(finalResultForDb);
 
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({
-        score: score.toFixed(1),
-        rank: "Your analysis is complete!",
-      }),
+      // Отправляем все данные на сайт
+      body: JSON.stringify(fullResult),
     };
   } catch (error) {
     console.error("Analysis Error:", error);
