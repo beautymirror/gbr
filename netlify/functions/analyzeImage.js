@@ -1,18 +1,13 @@
-const admin = require("firebase-admin");
 const fetch = require("node-fetch");
 
-// Инициализируем Firebase только один раз
-if (!admin.apps.length) {
-  try {
-    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-    });
-  } catch (e) {
-    console.error("Firebase admin initialization error", e);
-  }
-}
-const db = admin.firestore();
+// Firebase больше не нужен в этой функции
+// const admin = require("firebase-admin");
+// ...
+
+const getDominantEmotion = (emotions) => {
+    if (!emotions) return 'Neutral';
+    return Object.keys(emotions).reduce((a, b) => emotions[a] > emotions[b] ? a : b);
+};
 
 exports.handler = async (event, context) => {
   const headers = {
@@ -43,7 +38,6 @@ exports.handler = async (event, context) => {
     formData.append('api_key', apiKey);
     formData.append('api_secret', apiSecret);
     formData.append('image_base64', image);
-    // ИЗМЕНЕНИЕ: Запрашиваем только оценку красоты и пол
     formData.append('return_attributes', 'beauty,gender');
 
     const faceResponse = await fetch(faceplusplusUrl, {
@@ -54,42 +48,39 @@ exports.handler = async (event, context) => {
     const faceData = await faceResponse.json();
 
     if (faceData.error_message) {
+        // Если есть ошибка от API, отправляем ее на сайт
         throw new Error(faceData.error_message);
     }
     if (!faceData.faces || faceData.faces.length === 0) {
-        throw new Error("No face detected in the image.");
+        // Если лицо не найдено, это тоже ошибка
+        throw new Error("No face detected in the image. Please use a clear, forward-facing photo.");
+    }
+     if (faceData.faces.length > 1) {
+        // Если найдено больше одного лица
+        throw new Error("More than one face detected. Please use a photo of just yourself.");
     }
 
     const face = faceData.faces[0];
     const attributes = face.attributes;
     
     const beautyScore = attributes.beauty;
-    // Используем пол, который указал пользователь, для выбора правильной оценки
     const score = (userData.gender === 'male' ? beautyScore.male_score : beautyScore.female_score) / 10;
     
-    const simpleResult = {
+    const analysisResult = {
       score: score,
+      rank: "Your analysis is complete!"
     };
     
-    const finalResultForDb = {
-      ...userData,
-      score: score,
-      timestamp: admin.firestore.FieldValue.serverTimestamp(),
-    };
-    await db.collection("rankings").add(finalResultForDb);
-
+    // ИЗМЕНЕНИЕ: Мы больше не сохраняем в базу. Просто возвращаем результат.
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({
-        score: score.toFixed(1),
-        rank: "Your analysis is complete!", // Добавляем этот текст для отображения
-      }),
+      body: JSON.stringify(analysisResult),
     };
   } catch (error) {
     console.error("Analysis Error:", error);
     return {
-      statusCode: 500,
+      statusCode: 500, // Используем 500 для серверных ошибок
       headers,
       body: JSON.stringify({ error: error.toString() }),
     };
