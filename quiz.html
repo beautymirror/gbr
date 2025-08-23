@@ -64,7 +64,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // ВАЖНО: Вставьте сюда ваш ПУБЛИКУЕМЫЙ ключ от Stripe
+        // ВАЖНО: Вставьте сюда ваш НАСТОЯЩИЙ ПУБЛИКУЕМЫЙ ключ от Stripe (pk_live_...)
         const STRIPE_PUBLISHABLE_KEY = "pk_live_51PQ7mLA19LNOHDEO1yMYpJ3B74vO6GdJD0No0qRpsDBo5Xw956DxQMayJWUZjlNEo6S1WdEWY2Hr6ysFkLI4386I00vkmegPBL";
 
         // Используем относительные пути. Это самое надежное решение.
@@ -154,7 +154,11 @@
                     throw new Error(`Server responded with ${response.status}`);
                 }
 
-                const { clientSecret, amount, currency, country } = await response.json();
+                const paymentData = await response.json();
+                if (!paymentData || !paymentData.clientSecret) {
+                    throw new Error("Invalid response from server");
+                }
+                const { clientSecret, amount, currency, country } = paymentData;
                 
                 userData.country = country;
 
@@ -512,4 +516,3 @@
     </script>
 </body>
 </html>
-
