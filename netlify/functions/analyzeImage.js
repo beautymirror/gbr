@@ -1,7 +1,6 @@
 const admin = require("firebase-admin");
 const fetch = require("node-fetch");
 
-// Инициализируем Firebase только один раз
 if (!admin.apps.length) {
   try {
     const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
@@ -35,8 +34,8 @@ exports.handler = async (event, context) => {
       throw new Error("Missing image or user data.");
     }
 
-    // ИСПРАВЛЕНИЕ: Мы больше не определяем страну по IP.
-    // Мы доверяем данным, которые пользователь выбрал в квизе (userData.country).
+    const ip = event.headers['x-nf-client-connection-ip'] || 'Unknown';
+    userData.ip = ip;
     
     const faceplusplusUrl = "https://api-us.faceplusplus.com/facepp/v3/detect";
     const apiKey = process.env.FACEPLUSPLUS_API_KEY;
@@ -59,10 +58,10 @@ exports.handler = async (event, context) => {
         throw new Error(faceData.error_message);
     }
     if (!faceData.faces || faceData.faces.length === 0) {
-        throw new Error("No face detected in the image. Please use a clear, forward-facing photo.");
+        throw new Error("No face detected in the image.");
     }
      if (faceData.faces.length > 1) {
-        throw new Error("More than one face detected. Please use a photo of just yourself.");
+        throw new Error("More than one face detected.");
     }
 
     const face = faceData.faces[0];
@@ -81,14 +80,15 @@ exports.handler = async (event, context) => {
     const finalResultForDb = {
       ...userDataForDb,
       score: score,
+      paymentStatus: "Pending", // Статус по умолчанию
       timestamp: admin.firestore.FieldValue.serverTimestamp(),
     };
-    await db.collection("rankings").add(finalResultForDb);
+    const docRef = await db.collection("rankings").add(finalResultForDb);
 
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify(analysisResult),
+      body: JSON.stringify({ ...analysisResult, documentId: docRef.id }),
     };
   } catch (error) {
     console.error("Analysis Error:", error);
