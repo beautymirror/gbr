@@ -143,7 +143,6 @@
                     Simply upload your photo to get your AI beauty rank. We use advanced technology to provide an objective score based on dozens of facial parameters.
                 </p>
                 <div class="mt-10">
-                    <!-- ИЗМЕНЕНИЕ: Текст кнопки изменен -->
                     <a href="quiz.html" class="cta-button font-bold text-lg px-8 py-4 rounded-xl shadow-lg shadow-purple-500/10 inline-flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                           <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -246,10 +245,10 @@
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 reveal">
                     <div class="lg:col-span-2 clean-card p-6 md:p-8 flex flex-col">
                         <div class="p-1.5 bg-gray-100 rounded-xl flex items-center mb-6" id="main-tabs-nav">
-                            <button data-tab-target="#world" class="tab-button w-full text-center font-semibold py-2.5 rounded-lg transition active">World</button>
-                            <button data-tab-target="#countries" class="tab-button w-full text-center font-semibold py-2.5 rounded-lg transition">Countries</button>
+                            <button data-tab-target="#countries" class="tab-button w-full text-center font-semibold py-2.5 rounded-lg transition active">Countries</button>
                             <button data-tab-target="#men" class="tab-button w-full text-center font-semibold py-2.5 rounded-lg transition">Men</button>
                             <button data-tab-target="#women" class="tab-button w-full text-center font-semibold py-2.5 rounded-lg transition">Women</button>
+                            <button data-tab-target="#world" class="tab-button w-full text-center font-semibold py-2.5 rounded-lg transition">All</button>
                         </div>
                         <div id="main-tabs-content">
                             </div>
@@ -380,7 +379,8 @@
                 data.forEach(item => {
                     const flagCode = getCountryCode(item.country);
                     const timeAgo = formatTimeAgo(item.timestamp);
-                    cardHTML += `<div class="clean-card p-4 flex items-center space-x-4 mx-3 flex-shrink-0" style="width: 280px;"><img src="https://flagcdn.com/w80/${flagCode}.png" width="40" height="30" alt="Flag of ${item.country}" class="rounded-md"><div class="flex-grow"><p class="font-bold">${item.name}, ${item.age}</p><p class="text-sm text-gray-500">${timeAgo}</p></div><p class="text-2xl font-extrabold logo-gradient-text">${item.score.toFixed(1)}</p></div>`;
+                    // ИЗМЕНЕНИЕ: Оценка теперь отображается с 3 знаками после запятой
+                    cardHTML += `<div class="clean-card p-4 flex items-center space-x-4 mx-3 flex-shrink-0" style="width: 280px;"><img src="https://flagcdn.com/w80/${flagCode}.png" width="40" height="30" alt="Flag of ${item.country}" class="rounded-md"><div class="flex-grow"><p class="font-bold">${item.name}, ${item.age}</p><p class="text-sm text-gray-500">${timeAgo}</p></div><p class="text-2xl font-extrabold logo-gradient-text">${item.score.toFixed(3)}</p></div>`;
             });
             document.querySelectorAll('.marquee-content').forEach(container => {
                 container.innerHTML = cardHTML + cardHTML;
@@ -408,13 +408,15 @@
                 const rankingsData = {
                     world: allRankings,
                     countries: aggregateByCountry(allRankings),
-                    men: allRankings.filter(r => r.gender === 'Male'),
-                    women: allRankings.filter(r => r.gender === 'Female')
+                    men: allRankings.filter(r => r.gender && r.gender.toLowerCase() === 'male'),
+                    women: allRankings.filter(r => r.gender && r.gender.toLowerCase() === 'female')
                 };
 
                 const container = document.getElementById('main-tabs-content');
+                const tabOrder = ['countries', 'men', 'women', 'world'];
+
                 container.innerHTML = '';
-                Object.keys(rankingsData).forEach((key, index) => {
+                tabOrder.forEach((key, index) => {
                     const isActive = index === 0 ? 'active' : '';
                     let itemsHtml = '';
                     rankingsData[key].forEach((item, itemIndex) => {
@@ -425,7 +427,8 @@
                         const flagCode = getCountryCode(item.country || item.name);
                         const displayName = item.age ? `${item.name}, ${item.age}` : item.name;
 
-                        itemsHtml += `<div class="flex items-center justify-between p-3 rounded-lg ${bgColor} ranking-item ${isHidden}"><div class="flex items-center space-x-4"><div class="w-6 text-center">${rankHtml}</div><img src="https://flagcdn.com/w40/${flagCode}.png" width="40" alt="Flag" class="rounded-sm"><div><div class="font-semibold">${displayName}</div></div></div><div class="font-bold text-lg text-purple-600">${item.score.toFixed(1)}/10</div></div>`;
+                        // ИЗМЕНЕНИЕ: Оценка теперь отображается с 3 знаками после запятой
+                        itemsHtml += `<div class="flex items-center justify-between p-3 rounded-lg ${bgColor} ranking-item ${isHidden}"><div class="flex items-center space-x-4"><div class="w-6 text-center">${rankHtml}</div><img src="https://flagcdn.com/w40/${flagCode}.png" width="40" alt="Flag" class="rounded-sm"><div><div class="font-semibold">${displayName}</div></div></div><div class="font-bold text-lg text-purple-600">${item.score.toFixed(3)}/10</div></div>`;
                     });
                     container.innerHTML += `<div id="${key}" class="tab-content ${isActive} space-y-2">${itemsHtml}</div>`;
                 });
