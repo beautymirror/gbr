@@ -114,55 +114,6 @@
             display: none;
         }
     </style>
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      "mainEntity": [{
-        "@type": "Question",
-        "name": "How accurate is the AI beauty ranking analysis?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Our AI is trained on a massive dataset of diverse images to analyze objective facial metrics like symmetry and proportions. While it provides a consistent, data-driven score, remember that beauty is deeply personal and subjective. Consider our ranking a fun, technological perspective, not a final judgment."
-        }
-      },{
-        "@type": "Question",
-        "name": "Are my photos and data secure?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Absolutely. Your privacy is our top priority. Your photo is used for the one-time analysis and is deleted immediately from our servers. We never store or share your images. The only data we keep for statistical rankings (like your first name and country) is anonymized."
-        }
-      },{
-        "@type": "Question",
-        "name": "What exactly does the AI analyze?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "The AI evaluates dozens of objective parameters. This includes facial symmetry, the 'golden ratio,' skin clarity (texture, not color), and the proportions between different facial features like eyes, nose, and mouth. It's a purely geometric and textural analysis."
-        }
-      },{
-        "@type": "Question",
-        "name": "Can I use a photo with glasses, a hat, or other people?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "For the most accurate results, please use a clear, forward-facing photo of just yourself, without glasses, hats, or heavy shadows. Obstructions can interfere with the AI's ability to analyze your facial features correctly."
-        }
-      },{
-        "@type": "Question",
-        "name": "Why isn't this service free?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Running a sophisticated AI model requires significant computational resources. The small service fee allows us to cover these costs, maintain the technology, and ensure the service remains ad-free and secure, without ever needing to sell user data."
-        }
-      },{
-        "@type": "Question",
-        "name": "What do I receive after the analysis?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "You'll receive your unique score on a 10-point scale, a brief AI-generated comment on your photo's strengths, and your anonymous placement in our global, country, and gender-based rankings."
-        }
-      }]
-    }
-    </script>
 </head>
 <body class="text-gray-900">
 
@@ -183,6 +134,16 @@
     </header>
 
     <main>
+        <!-- ИЗМЕНЕНИЕ: Добавлен новый блок со счетчиком -->
+        <section class="py-12 bg-white/50">
+            <div class="container mx-auto px-6">
+                <div class="text-center">
+                    <p class="text-5xl md:text-6xl font-black text-purple-600" id="participant-counter">5,467,789</p>
+                    <p class="mt-2 text-lg text-gray-600">participants from <span id="country-counter" class="font-bold">163</span> countries</p>
+                </div>
+            </div>
+        </section>
+
         <section class="relative py-24 md:py-32 overflow-hidden">
             <div class="container mx-auto px-6 text-center relative z-10">
                 <h1 class="text-5xl md:text-7xl font-black text-gray-900 leading-tight tracking-tighter">
@@ -332,11 +293,9 @@
     </div>
 
     <script type="module">
-        // ИЗМЕНЕНИЕ: Добавлен импорт Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getFirestore, collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-        // ИЗМЕНЕНИЕ: Добавлена конфигурация Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyD9R43D9ktWxYFQtpkGJNTOgdWyZqfM-bU",
             authDomain: "global-beauty-rank.firebaseapp.com",
@@ -349,8 +308,7 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-
-        // ИЗМЕНЕНИЕ: Вся логика для работы с данными
+        
         document.addEventListener('DOMContentLoaded', () => {
             const statsData = {
                 professions: { title: 'Top Professions', items: [ { label: 'Artist', score: 9.4 }, { label: 'Model', score: 9.3 }, { label: 'Doctor', score: 9.1 }, { label: 'Engineer', score: 8.9 }, { label: 'Teacher', score: 8.8 }, { label: 'Musician', score: 8.7 }, { label: 'Athlete', score: 8.6 }, { label: 'Programmer', score: 8.5 }, { label: 'Manager', score: 8.3 }, { label: 'Salesperson', score: 8.1 } ] },
@@ -378,9 +336,18 @@
             }
 
             const mainQuery = query(collection(db, "rankings"));
+            let fakeCounterStarted = false;
 
             onSnapshot(mainQuery, (snapshot) => {
                 const allRankings = snapshot.docs.map(doc => doc.data());
+
+                if (!fakeCounterStarted) {
+                    startFakeCounter(allRankings.length);
+                    fakeCounterStarted = true;
+                }
+
+                const uniqueCountries = new Set(allRankings.map(item => item.country).filter(Boolean));
+                document.getElementById('country-counter').textContent = uniqueCountries.size;
 
                 const sortedByTime = [...allRankings].sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
                 populateMarquees(sortedByTime.slice(0, 10));
@@ -388,6 +355,15 @@
                 const sortedByScore = [...allRankings].sort((a, b) => b.score - a.score);
                 populateRankings(sortedByScore);
             });
+
+            function startFakeCounter(initialCount) {
+                let participantCount = 5467789 + initialCount;
+                const counterElement = document.getElementById('participant-counter');
+                setInterval(() => {
+                    participantCount += Math.floor(Math.random() * 5) + 1;
+                    counterElement.textContent = participantCount.toLocaleString('en-US');
+                }, 500);
+            }
 
             function populateMarquees(data) {
                 let cardHTML = '';
