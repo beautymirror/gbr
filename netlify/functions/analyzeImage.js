@@ -1,6 +1,7 @@
 const admin = require("firebase-admin");
 const fetch = require("node-fetch");
 
+// Инициализируем Firebase только один раз
 if (!admin.apps.length) {
   try {
     const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
@@ -33,9 +34,6 @@ exports.handler = async (event, context) => {
     if (!image || !userData) {
       throw new Error("Missing image or user data.");
     }
-
-    const ip = event.headers['x-nf-client-connection-ip'] || 'Unknown';
-    userData.ip = ip;
     
     const faceplusplusUrl = "https://api-us.faceplusplus.com/facepp/v3/detect";
     const apiKey = process.env.FACEPLUSPLUS_API_KEY;
@@ -58,10 +56,10 @@ exports.handler = async (event, context) => {
         throw new Error(faceData.error_message);
     }
     if (!faceData.faces || faceData.faces.length === 0) {
-        throw new Error("No face detected in the image.");
+        throw new Error("No face detected in the image. Please use a clear, forward-facing photo.");
     }
      if (faceData.faces.length > 1) {
-        throw new Error("More than one face detected.");
+        throw new Error("More than one face detected. Please use a photo of just yourself.");
     }
 
     const face = faceData.faces[0];
@@ -71,7 +69,7 @@ exports.handler = async (event, context) => {
     const score = (userData.gender === 'male' ? beautyScore.male_score : beautyScore.female_score) / 10;
     
     const analysisResult = {
-      score: score,
+      score: score, // ИЗМЕНЕНИЕ: Отправляем полное значение, без округления
       rank: "Your analysis is complete!"
     };
     
@@ -80,15 +78,14 @@ exports.handler = async (event, context) => {
     const finalResultForDb = {
       ...userDataForDb,
       score: score,
-      paymentStatus: "Pending", // Статус по умолчанию
       timestamp: admin.firestore.FieldValue.serverTimestamp(),
     };
-    const docRef = await db.collection("rankings").add(finalResultForDb);
+    await db.collection("rankings").add(finalResultForDb);
 
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({ ...analysisResult, documentId: docRef.id }),
+      body: JSON.stringify(analysisResult),
     };
   } catch (error) {
     console.error("Analysis Error:", error);
