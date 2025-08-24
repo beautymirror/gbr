@@ -81,14 +81,6 @@
             { id: 'result', type: 'result' }
         ];
         
-        // ИЗМЕНЕНИЕ: Функция для сбора UTM-меток
-        function captureTrafficSource() {
-            const params = new URLSearchParams(window.location.search);
-            const source = params.get('utm_source');
-            // Если есть хотя бы utm_source, сохраняем его. Иначе - 'direct'.
-            userData.trafficSource = source ? source : 'direct';
-        }
-
         async function preAnalyzePhoto() {
             if (!userData.base64Image) {
                 await addBotMessage("It seems there was an error with the photo upload. Please try again.", true);
@@ -145,7 +137,9 @@
             try {
                 stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
                 const response = await fetch(createPaymentIntentUrl, { 
-                    method: 'POST'
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ country: userData.country })
                 });
 
                 if (!response.ok) {
@@ -227,7 +221,7 @@
             } else {
                 resultContainer.innerHTML = `
                     <h2 class="text-2xl font-bold tracking-tight text-center">Your Result:</h2>
-                    <p class="text-8xl font-extrabold logo-gradient-text my-4 text-center">${result.score.toFixed(1)}</p>
+                    <p class="text-8xl font-extrabold logo-gradient-text my-4 text-center">${result.score.toFixed(3)}</p>
                     <p class="text-gray-600 text-lg text-center">${result.rank}</p>
                     <button onclick="location.reload()" class="cta-button w-full font-bold text-lg px-8 py-3 rounded-xl mt-8">Try Again</button>
                 `;
@@ -644,7 +638,6 @@
             };
         }
         
-        captureTrafficSource();
         checkPaymentStatus().then(() => {
             if (currentStep === 0 && !new URLSearchParams(window.location.search).has("payment_intent_client_secret")) {
                 handleStep();
