@@ -1,8 +1,16 @@
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const admin = require("firebase-admin");
 
-// --- СПИСКИ СТРАН ДЛЯ РАЗНЫХ ЦЕН ---
-const highIncomeCountries = [ "AD", "AE", "AG", "AU", "AT", "BS", "BH", "BB", "BE", "BN", "CA", "CL", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HK", "HU", "IS", "IE", "IL", "IT", "JP", "KR", "KW", "LV", "LI", "LT", "LU", "MT", "MC", "NL", "NZ", "NO", "OM", "PL", "PT", "QA", "SM", "SA", "SG", "SK", "SI", "ES", "SE", "CH", "TW", "GB", "US", "UY" ];
-const developingCountries = [ "AL", "DZ", "AO", "AR", "AM", "AZ", "BD", "BY", "BZ", "BJ", "BT", "BO", "BA", "BW", "BR", "BG", "BF", "BI", "KH", "CM", "CV", "CF", "TD", "CN", "CO", "KM", "CG", "CD", "CR", "CI", "CU", "DJ", "DM", "DO", "EC", "EG", "SV", "GQ", "ER", "ET", "FJ", "GA", "GM", "GE", "GH", "GD", "GT", "GN", "GW", "GY", "HT", "HN", "IN", "ID", "IR", "IQ", "JM", "JO", "KZ", "KE", "KI", "KG", "LA", "LB", "LS", "LR", "LY", "MK", "MG", "MW", "MY", "MV", "ML", "MH", "MR", "MU", "MX", "FM", "MD", "MN", "ME", "MA", "MZ", "MM", "NA", "NP", "NI", "NE", "NG", "PK", "PW", "PA", "PG", "PY", "PE", "PH", "RO", "RU", "RW", "WS", "ST", "SN", "RS", "SL", "SB", "ZA", "LK", "VC", "SD", "SR", "SZ", "SY", "TJ", "TZ", "TH", "TL", "TG", "TO", "TN", "TR", "TM", "TV", "UG", "UA", "UZ", "VU", "VN", "YE", "ZM", "ZW" ];
+if (!admin.apps.length) {
+  try {
+    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
+  } catch (e) {
+    console.error("Firebase admin initialization error", e);
+  }
+}
+const db = admin.firestore();
 
 exports.handler = async (event, context) => {
   const headers = {
@@ -18,46 +26,32 @@ exports.handler = async (event, context) => {
       body: JSON.stringify({ message: "Successful preflight call." }),
     };
   }
-  
-  try {
-    // ИЗМЕНЕНИЕ: Определяем страну по IP ИСКЛЮЧИТЕЛЬНО для цены
-    const countryCode = context.geo?.country?.code || "US"; // Фоллбэк на US
-    let amount;
 
-    if (highIncomeCountries.includes(countryCode)) {
-      amount = 499;
-    } else if (developingCountries.includes(countryCode)) {
-      amount = 249;
-    } else {
-      amount = 99;
+  try {
+    const { documentId, amount, currency, paymentMethod } = JSON.parse(event.body);
+    if (!documentId) {
+      throw new Error("Document ID is missing.");
     }
 
-    const currency = "usd";
-
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: amount,
-      currency: currency,
-      automatic_payment_methods: {
-        enabled: true,
-      },
+    const docRef = db.collection('rankings').doc(documentId);
+    await docRef.update({
+      paymentStatus: 'Paid',
+      paymentAmount: amount / 100, // Конвертируем из центов в доллары
+      paymentCurrency: currency.toUpperCase(),
+      paymentMethod: paymentMethod,
     });
 
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({ 
-        clientSecret: paymentIntent.client_secret,
-        amount: amount,
-        currency: currency,
-        countryCode: countryCode // Возвращаем код страны для Stripe
-      }),
+      body: JSON.stringify({ success: true }),
     };
   } catch (error) {
-    console.error("Stripe Error:", error);
+    console.error("Update Payment Error:", error);
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ error: error.message }),
+      body: JSON.stringify({ error: error.toString() }),
     };
   }
 };
