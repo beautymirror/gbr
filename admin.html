@@ -153,7 +153,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // ИЗМЕНЕНИЕ: Пароль удален из кода
         const modal = document.getElementById('password-modal');
         const mainContent = document.getElementById('main-content');
         const passwordInput = document.getElementById('password-input');
@@ -171,7 +170,6 @@
             if (e.key === 'Enter') checkPassword();
         });
 
-        // ИЗМЕНЕНИЕ: Новая асинхронная функция для проверки пароля
         async function checkPassword() {
             passwordSubmit.disabled = true;
             passwordError.classList.add('hidden');
