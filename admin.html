@@ -3,61 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- ИЗМЕНЕНИЕ: Добавлен тег noindex для запрета индексации -->
+    <meta name="robots" content="noindex">
     <title>Admin Panel - Global Beauty Rank</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
-        .table-sortable th { cursor: pointer; }
+        .table-sortable th { cursor: pointer; user-select: none; }
         .table-sortable th:hover { background-color: #f9fafb; }
+        .table-sortable th .sort-arrow { display: inline-block; width: 1em; opacity: 0.3; }
+        .table-sortable th.sorted-asc .sort-arrow,
+        .table-sortable th.sorted-desc .sort-arrow { opacity: 1; }
+        .modal { transition: opacity 0.3s ease; }
+        .modal-content { transition: transform 0.3s ease; }
+        .logo-gradient-text { background: linear-gradient(90deg, #D946EF, #8B5CF6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .animate-shake { animation: shake 0.5s; }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800">
+<body class="bg-gray-50 text-gray-800">
 
     <!-- Password Protection -->
-    <div id="password-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-sm">
-            <h2 class="text-2xl font-bold mb-4">Admin Access</h2>
-            <p class="text-gray-600 mb-6">Please enter the password to view the admin panel.</p>
-            <input type="password" id="password-input" class="w-full p-3 border border-gray-300 rounded-lg mb-4" placeholder="Password">
-            <button id="password-submit" class="w-full bg-purple-600 text-white font-bold py-3 rounded-lg hover:bg-purple-700 transition">Enter</button>
-            <p id="password-error" class="text-red-500 text-sm mt-2 hidden">Incorrect password.</p>
-        </div>
-    </div>
-
-    <!-- Main Content -->
-    <div id="main-content" class="container mx-auto p-4 md:p-8 hidden">
-        <header class="mb-8">
-            <h1 class="text-4xl font-black text-gray-900">Admin Panel</h1>
-            <p class="text-gray-600">Global Beauty Rank Data</p>
-        </header>
-
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left text-gray-500 table-sortable">
-                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-                        <tr>
-                            <th scope="col" class="px-6 py-3" data-sort="timestamp">Date</th>
-                            <th scope="col" class="px-6 py-3" data-sort="ip">IP Address</th>
-                            <th scope="col" class="px-6 py-3" data-sort="country">Country</th>
-                            <th scope="col" class="px-6 py-3" data-sort="name">Name</th>
-                            <th scope="col" class="px-6 py-3" data-sort="gender">Gender</th>
-                            <th scope="col" class="px-6 py-3" data-sort="age">Age</th>
-                            <th scope="col" class="px-6 py-3" data-sort="profession">Profession</th>
-                            <th scope="col" class="px-6 py-3" data-sort="score">Beauty Score</th>
-                            <th scope="col" class="px-6 py-3" data-sort="paymentStatus">Payment Status</th>
-                            <th scope="col" class="px-6 py-3" data-sort="paymentAmount">Amount</th>
-                            <th scope="col" class="px-6 py-3" data-sort="paymentMethod">Method</th>
-                            <th scope="col" class="px-6 py-3" data-sort="trafficSource">Traffic Source</th>
-                        </tr>
-                    </thead>
-                    <tbody id="data-table-body">
-                        <!-- Data will be inserted here -->
-                    </tbody>
-                </table>
+    <div id="password-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 transition-opacity duration-300">
+        <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-sm transform transition-all duration-300 scale-95">
+            <div class="text-center">
+                <svg class="mx-auto h-12 w-12 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                </svg>
+                <h2 class="mt-4 text-2xl font-bold text-gray-900">Admin Access</h2>
+                <p class="mt-2 text-gray-600">Please enter the password to continue.</p>
+            </div>
+            <div class="mt-6">
+                <input type="password" id="password-input" class="w-full p-3 border border-gray-300 rounded-lg mb-4 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition" placeholder="Password">
+                <button id="password-submit" class="w-full bg-purple-600 text-white font-bold py-3 rounded-lg hover:bg-purple-700 transition-transform transform hover:scale-105">Enter</button>
+                <p id="password-error" class="text-red-500 text-sm mt-2 hidden">Incorrect password. Please try again.</p>
             </div>
         </div>
     </div>
+
+    <!-- Main Content Layout -->
+    <div id="main-content" class="flex h-screen hidden">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white shadow-md flex flex-col">
+            <div class="p-6 text-center border-b">
+                <h1 class="text-2xl font-black logo-gradient-text">GBR Admin</h1>
+            </div>
+            <nav class="flex-grow p-4">
+                <ul>
+                    <li>
+                        <a href="#" class="flex items-center px-4 py-2 text-gray-700 bg-purple-100 rounded-lg">
+                            <svg class="w-5 h-5 mr-3 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" /></svg>
+                            <span class="font-semibold">Dashboard</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Area -->
+        <main class="flex-1 overflow-y-auto p-8">
+            <header class="mb-8">
+                <h1 class="text-4xl font-black text-gray-900">Dashboard</h1>
+                <p class="text-gray-600">Global Beauty Rank Data Overview</p>
+            </header>
+
+            <!-- Stat Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-sm font-medium text-gray-500">Total Analyses</h3><p id="stat-total" class="text-3xl font-bold text-gray-900 mt-1">0</p></div>
+                <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-sm font-medium text-gray-500">Paid Analyses</h3><p id="stat-paid" class="text-3xl font-bold text-green-600 mt-1">0</p></div>
+                <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-sm font-medium text-gray-500">Total Revenue</h3><p id="stat-revenue" class="text-3xl font-bold text-gray-900 mt-1">$0.00</p></div>
+                <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-sm font-medium text-gray-500">Average Score</h3><p id="stat-avg-score" class="text-3xl font-bold text-purple-600 mt-1">0.0</p></div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-gray-500 table-sortable">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3" data-sort="timestamp">Date <span class="sort-arrow">↕</span></th>
+                                <th scope="col" class="px-6 py-3" data-sort="ip">IP Address <span class="sort-arrow">↕</span></th>
+                                <th scope="col" class="px-6 py-3" data-sort="country">Country <span class="sort-arrow">↕</span></th>
+                                <th scope="col" class="px-6 py-3" data-sort="name">Name <span class="sort-arrow">↕</span></th>
+                                <th scope="col" class="px-6 py-3" data-sort="gender">Gender <span class="sort-arrow">↕</span></th>
+                                <th scope="col" class="px-6 py-3" data-sort="age">Age <span class="sort-arrow">↕</span></th>
+                                <th scope="col" class="px-6 py-3" data-sort="profession">Profession <span class="sort-arrow">↕</span></th>
+                                <th scope="col" class="px-6 py-3" data-sort="score">Score <span class="sort-arrow">↕</span></th>
+                                <th scope="col" class="px-6 py-3" data-sort="paymentStatus">Status <span class="sort-arrow">↕</span></th>
+                                <th scope="col" class="px-6 py-3" data-sort="paymentAmount">Amount <span class="sort-arrow">↕</span></th>
+                                <th scope="col" class="px-6 py-3" data-sort="paymentMethod">Method <span class="sort-arrow">↕</span></th>
+                                <th scope="col" class="px-6 py-3" data-sort="trafficSource">Source <span class="sort-arrow">↕</span></th>
+                                <th scope="col" class="px-6 py-3">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="data-table-body">
+                            <!-- Data will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="edit-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 modal hidden opacity-0">
+        <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-2xl modal-content transform -translate-y-10">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">Edit Entry</h2>
+                <button id="close-modal-btn" class="text-gray-500 hover:text-gray-800 text-3xl">&times;</button>
+            </div>
+            <form id="edit-form">
+                <input type="hidden" id="edit-document-id">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div><label class="block text-sm font-medium text-gray-700">Name</label><input type="text" id="edit-name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500"></div>
+                    <div><label class="block text-sm font-medium text-gray-700">Country</label><input type="text" id="edit-country" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500"></div>
+                    <div><label class="block text-sm font-medium text-gray-700">Gender</label><input type="text" id="edit-gender" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500"></div>
+                    <div><label class="block text-sm font-medium text-gray-700">Age</label><input type="text" id="edit-age" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500"></div>
+                    <div><label class="block text-sm font-medium text-gray-700">Profession</label><input type="text" id="edit-profession" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500"></div>
+                    <div><label class="block text-sm font-medium text-gray-700">Beauty Score</label><input type="number" step="0.01" id="edit-score" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500"></div>
+                </div>
+                <div class="mt-8 flex justify-end space-x-4">
+                    <button type="button" id="cancel-edit-btn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancel</button>
+                    <button type="submit" id="save-edit-btn" class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -77,49 +154,69 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- Password Protection ---
-        const ADMIN_PASSWORD = "your_secret_password"; // ВАЖНО: Установите надежный пароль
         const modal = document.getElementById('password-modal');
         const mainContent = document.getElementById('main-content');
         const passwordInput = document.getElementById('password-input');
         const passwordSubmit = document.getElementById('password-submit');
         const passwordError = document.getElementById('password-error');
+        
+        window.onload = () => {
+            setTimeout(() => {
+                modal.querySelector('div').classList.remove('scale-95');
+            }, 10);
+        };
 
         passwordSubmit.addEventListener('click', checkPassword);
         passwordInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') checkPassword();
         });
 
-        function checkPassword() {
-            if (passwordInput.value === ADMIN_PASSWORD) {
-                modal.classList.add('hidden');
-                mainContent.classList.remove('hidden');
-                loadData();
-            } else {
+        async function checkPassword() {
+            passwordSubmit.disabled = true;
+            passwordError.classList.add('hidden');
+
+            try {
+                const response = await fetch('/.netlify/functions/checkAdminPassword', {
+                    method: 'POST',
+                    body: JSON.stringify({ password: passwordInput.value })
+                });
+
+                if (response.ok) {
+                    modal.classList.add('opacity-0', 'pointer-events-none');
+                    mainContent.classList.remove('hidden');
+                    loadData();
+                } else {
+                    throw new Error("Incorrect password");
+                }
+            } catch (error) {
                 passwordError.classList.remove('hidden');
+                modal.querySelector('div').classList.add('animate-shake');
+                setTimeout(() => modal.querySelector('div').classList.remove('animate-shake'), 500);
+            } finally {
+                passwordSubmit.disabled = false;
             }
         }
 
-        // --- Data Loading and Table Rendering ---
         const tableBody = document.getElementById('data-table-body');
         let allData = [];
 
         async function loadData() {
             const q = query(collection(db, "rankings"), orderBy("timestamp", "desc"));
             const querySnapshot = await getDocs(q);
-            allData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            allData = querySnapshot.docs.map(doc => ({ documentId: doc.id, ...doc.data() }));
             renderTable(allData);
+            calculateStats(allData);
         }
 
         function renderTable(data) {
             tableBody.innerHTML = '';
             data.forEach(item => {
                 const row = document.createElement('tr');
-                row.className = 'bg-white border-b';
+                row.className = 'bg-white border-b hover:bg-gray-50 transition-colors';
                 
                 const formattedDate = item.timestamp ? new Date(item.timestamp.seconds * 1000).toLocaleString() : 'N/A';
-                const paymentStatusClass = item.paymentStatus === 'Paid' ? 'text-green-600' : 'text-yellow-600';
-                const formattedAmount = item.paymentAmount ? `${item.paymentAmount.toFixed(2)} ${item.paymentCurrency}` : 'N/A';
+                const paymentStatusClass = item.paymentStatus === 'Paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
+                const formattedAmount = item.paymentAmount ? `${item.paymentAmount.toFixed(2)} ${item.paymentCurrency || ''}` : 'N/A';
 
                 row.innerHTML = `
                     <td class="px-6 py-4">${formattedDate}</td>
@@ -130,13 +227,117 @@
                     <td class="px-6 py-4">${item.age || 'N/A'}</td>
                     <td class="px-6 py-4">${item.profession || 'N/A'}</td>
                     <td class="px-6 py-4 font-bold text-purple-600">${item.score ? item.score.toFixed(2) : 'N/A'}</td>
-                    <td class="px-6 py-4 font-semibold ${paymentStatusClass}">${item.paymentStatus || 'N/A'}</td>
+                    <td class="px-6 py-4"><span class="px-2 py-1 text-xs font-medium rounded-full ${paymentStatusClass}">${item.paymentStatus || 'N/A'}</span></td>
                     <td class="px-6 py-4">${formattedAmount}</td>
                     <td class="px-6 py-4">${item.paymentMethod || 'N/A'}</td>
                     <td class="px-6 py-4">${item.trafficSource || 'N/A'}</td>
+                    <td class="px-6 py-4 flex items-center space-x-2">
+                        <button class="edit-btn text-blue-600 hover:text-blue-800" data-id="${item.documentId}">Edit</button>
+                        <button class="delete-btn text-red-600 hover:text-red-800" data-id="${item.documentId}">Delete</button>
+                    </td>
                 `;
                 tableBody.appendChild(row);
             });
+            
+            addTableActionListeners();
+        }
+        
+        function calculateStats(data) {
+            document.getElementById('stat-total').textContent = data.length;
+            const paid = data.filter(item => item.paymentStatus === 'Paid');
+            document.getElementById('stat-paid').textContent = paid.length;
+            const revenue = paid.reduce((sum, item) => sum + (item.paymentAmount || 0), 0);
+            document.getElementById('stat-revenue').textContent = `$${revenue.toFixed(2)}`;
+            const totalScore = data.reduce((sum, item) => sum + (item.score || 0), 0);
+            const avgScore = data.length > 0 ? (totalScore / data.length) : 0;
+            document.getElementById('stat-avg-score').textContent = avgScore.toFixed(2);
+        }
+
+        // --- Modal and Actions Logic ---
+        const editModal = document.getElementById('edit-modal');
+        const editForm = document.getElementById('edit-form');
+
+        function addTableActionListeners() {
+            document.querySelectorAll('.edit-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const id = e.target.dataset.id;
+                    const entry = allData.find(item => item.documentId === id);
+                    openEditModal(entry);
+                });
+            });
+
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const id = e.target.dataset.id;
+                    if (confirm('Are you sure you want to delete this entry?')) {
+                        deleteEntry(id);
+                    }
+                });
+            });
+        }
+        
+        function openEditModal(entry) {
+            document.getElementById('edit-document-id').value = entry.documentId;
+            document.getElementById('edit-name').value = entry.name || '';
+            document.getElementById('edit-country').value = entry.country || '';
+            document.getElementById('edit-gender').value = entry.gender || '';
+            document.getElementById('edit-age').value = entry.age || '';
+            document.getElementById('edit-profession').value = entry.profession || '';
+            document.getElementById('edit-score').value = entry.score || 0;
+            editModal.classList.remove('hidden');
+            setTimeout(() => {
+                editModal.classList.remove('opacity-0');
+                editModal.querySelector('.modal-content').classList.remove('-translate-y-10');
+            }, 10);
+        }
+
+        function closeEditModal() {
+            editModal.classList.add('opacity-0');
+            editModal.querySelector('.modal-content').classList.add('-translate-y-10');
+            setTimeout(() => editModal.classList.add('hidden'), 300);
+        }
+        
+        document.getElementById('close-modal-btn').addEventListener('click', closeEditModal);
+        document.getElementById('cancel-edit-btn').addEventListener('click', closeEditModal);
+
+        editForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const documentId = document.getElementById('edit-document-id').value;
+            const updatedData = {
+                name: document.getElementById('edit-name').value,
+                country: document.getElementById('edit-country').value,
+                gender: document.getElementById('edit-gender').value,
+                age: document.getElementById('edit-age').value,
+                profession: document.getElementById('edit-profession').value,
+                score: parseFloat(document.getElementById('edit-score').value),
+            };
+            
+            try {
+                const response = await fetch('/.netlify/functions/updateRanking', {
+                    method: 'POST',
+                    body: JSON.stringify({ documentId, data: updatedData })
+                });
+                if (!response.ok) throw new Error('Failed to update');
+                closeEditModal();
+                loadData();
+            } catch (error) {
+                console.error("Update failed:", error);
+                alert("Could not update the entry.");
+            }
+        });
+
+        async function deleteEntry(documentId) {
+            try {
+                const response = await fetch('/.netlify/functions/deleteRanking', {
+                    method: 'POST',
+                    body: JSON.stringify({ documentId })
+                });
+                if (!response.ok) throw new Error('Failed to delete');
+                loadData();
+            } catch (error) {
+                console.error("Delete failed:", error);
+                alert("Could not delete the entry.");
+            }
         }
 
         // --- Sorting Logic ---
@@ -144,17 +345,21 @@
         document.querySelectorAll('.table-sortable th').forEach(header => {
             header.addEventListener('click', () => {
                 const sortKey = header.dataset.sort;
+                if (!sortKey) return;
                 sortDirection[sortKey] = sortDirection[sortKey] === 'asc' ? 'desc' : 'asc';
+
+                document.querySelectorAll('.table-sortable th').forEach(h => h.classList.remove('sorted-asc', 'sorted-desc'));
+                header.classList.add(sortDirection[sortKey] === 'asc' ? 'sorted-asc' : 'sorted-desc');
 
                 allData.sort((a, b) => {
                     let valA = a[sortKey];
                     let valB = b[sortKey];
-
                     if (sortKey === 'timestamp') {
                         valA = a.timestamp?.seconds || 0;
                         valB = b.timestamp?.seconds || 0;
                     }
-
+                    if (valA === undefined || valA === null) valA = '';
+                    if (valB === undefined || valB === null) valB = '';
                     if (typeof valA === 'string') {
                         return sortDirection[sortKey] === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
                     }
