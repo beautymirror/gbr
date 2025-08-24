@@ -24,6 +24,12 @@
             30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
             40%, 60% { transform: translate3d(4px, 0, 0); }
         }
+        /* Стили для активной и неактивной навигации */
+        .nav-link.active {
+            background-color: #f3e8ff; /* purple-100 */
+            color: #5b21b6; /* purple-700 */
+            font-weight: 600;
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
@@ -54,11 +60,17 @@
                 <h1 class="text-2xl font-black logo-gradient-text">GBR Admin</h1>
             </div>
             <nav class="flex-grow p-4">
-                <ul>
+                <ul class="space-y-2">
                     <li>
-                        <a href="#" class="flex items-center px-4 py-2 text-gray-700 bg-purple-100 rounded-lg">
-                            <svg class="w-5 h-5 mr-3 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" /></svg>
-                            <span class="font-semibold">Dashboard</span>
+                        <a href="#" id="nav-dashboard" class="nav-link flex items-center px-4 py-2 text-gray-700 rounded-lg active">
+                            <svg class="w-5 h-5 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" /></svg>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" id="nav-import" class="nav-link flex items-center px-4 py-2 text-gray-700 rounded-lg">
+                            <svg class="w-5 h-5 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 8.25H7.5a2.25 2.25 0 00-2.25 2.25v9a2.25 2.25 0 002.25 2.25h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25H15m0-3l-3-3m0 0l-3 3m3-3v11.25" /></svg>
+                            <span>Import</span>
                         </a>
                     </li>
                 </ul>
@@ -66,47 +78,63 @@
         </aside>
 
         <!-- Main Area -->
-        <main class="flex-1 overflow-y-auto p-8">
-            <header class="mb-8">
-                <h1 class="text-4xl font-black text-gray-900">Dashboard</h1>
-                <p class="text-gray-600">Global Beauty Rank Data Overview</p>
-            </header>
-
-            <!-- Stat Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-sm font-medium text-gray-500">Total Analyses</h3><p id="stat-total" class="text-3xl font-bold text-gray-900 mt-1">0</p></div>
-                <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-sm font-medium text-gray-500">Paid Analyses</h3><p id="stat-paid" class="text-3xl font-bold text-green-600 mt-1">0</p></div>
-                <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-sm font-medium text-gray-500">Total Revenue</h3><p id="stat-revenue" class="text-3xl font-bold text-gray-900 mt-1">$0.00</p></div>
-                <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-sm font-medium text-gray-500">Average Score</h3><p id="stat-avg-score" class="text-3xl font-bold text-purple-600 mt-1">0.0</p></div>
-            </div>
-
-            <div class="bg-white rounded-lg shadow-md">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-left text-gray-500 table-sortable">
-                        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-                            <tr>
-                                <th scope="col" class="px-6 py-3" data-sort="timestamp">Date <span class="sort-arrow">↕</span></th>
-                                <th scope="col" class="px-6 py-3" data-sort="ip">IP Address <span class="sort-arrow">↕</span></th>
-                                <th scope="col" class="px-6 py-3" data-sort="country">Country <span class="sort-arrow">↕</span></th>
-                                <th scope="col" class="px-6 py-3" data-sort="name">Name <span class="sort-arrow">↕</span></th>
-                                <th scope="col" class="px-6 py-3" data-sort="gender">Gender <span class="sort-arrow">↕</span></th>
-                                <th scope="col" class="px-6 py-3" data-sort="age">Age <span class="sort-arrow">↕</span></th>
-                                <th scope="col" class="px-6 py-3" data-sort="profession">Profession <span class="sort-arrow">↕</span></th>
-                                <th scope="col" class="px-6 py-3" data-sort="score">Score <span class="sort-arrow">↕</span></th>
-                                <th scope="col" class="px-6 py-3" data-sort="paymentStatus">Status <span class="sort-arrow">↕</span></th>
-                                <th scope="col" class="px-6 py-3" data-sort="paymentAmount">Amount <span class="sort-arrow">↕</span></th>
-                                <th scope="col" class="px-6 py-3" data-sort="paymentMethod">Method <span class="sort-arrow">↕</span></th>
-                                <th scope="col" class="px-6 py-3" data-sort="trafficSource">Source <span class="sort-arrow">↕</span></th>
-                                <th scope="col" class="px-6 py-3">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="data-table-body">
-                            <!-- Data will be inserted here -->
-                        </tbody>
-                    </table>
+        <div class="flex-1 overflow-y-auto">
+            <!-- Dashboard Section -->
+            <main id="dashboard-section" class="p-8">
+                <header class="mb-8">
+                    <h1 class="text-4xl font-black text-gray-900">Dashboard</h1>
+                    <p class="text-gray-600">Global Beauty Rank Data Overview</p>
+                </header>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-sm font-medium text-gray-500">Total Analyses</h3><p id="stat-total" class="text-3xl font-bold text-gray-900 mt-1">0</p></div>
+                    <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-sm font-medium text-gray-500">Paid Analyses</h3><p id="stat-paid" class="text-3xl font-bold text-green-600 mt-1">0</p></div>
+                    <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-sm font-medium text-gray-500">Total Revenue</h3><p id="stat-revenue" class="text-3xl font-bold text-gray-900 mt-1">$0.00</p></div>
+                    <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-sm font-medium text-gray-500">Average Score</h3><p id="stat-avg-score" class="text-3xl font-bold text-purple-600 mt-1">0.0</p></div>
                 </div>
-            </div>
-        </main>
+                <div class="bg-white rounded-lg shadow-md">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left text-gray-500 table-sortable">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3" data-sort="timestamp">Date <span class="sort-arrow">↕</span></th>
+                                    <th scope="col" class="px-6 py-3" data-sort="ip">IP Address <span class="sort-arrow">↕</span></th>
+                                    <th scope="col" class="px-6 py-3" data-sort="country">Country <span class="sort-arrow">↕</span></th>
+                                    <th scope="col" class="px-6 py-3" data-sort="name">Name <span class="sort-arrow">↕</span></th>
+                                    <th scope="col" class="px-6 py-3" data-sort="gender">Gender <span class="sort-arrow">↕</span></th>
+                                    <th scope="col" class="px-6 py-3" data-sort="age">Age <span class="sort-arrow">↕</span></th>
+                                    <th scope="col" class="px-6 py-3" data-sort="profession">Profession <span class="sort-arrow">↕</span></th>
+                                    <th scope="col" class="px-6 py-3" data-sort="score">Score <span class="sort-arrow">↕</span></th>
+                                    <th scope="col" class="px-6 py-3" data-sort="paymentStatus">Status <span class="sort-arrow">↕</span></th>
+                                    <th scope="col" class="px-6 py-3" data-sort="paymentAmount">Amount <span class="sort-arrow">↕</span></th>
+                                    <th scope="col" class="px-6 py-3" data-sort="paymentMethod">Method <span class="sort-arrow">↕</span></th>
+                                    <th scope="col" class="px-6 py-3" data-sort="trafficSource">Source <span class="sort-arrow">↕</span></th>
+                                    <th scope="col" class="px-6 py-3">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="data-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Import Section -->
+            <main id="import-section" class="p-8 hidden">
+                <header class="mb-8">
+                    <h1 class="text-4xl font-black text-gray-900">Import Data</h1>
+                    <p class="text-gray-600">Bulk upload user data from a CSV file.</p>
+                </header>
+                <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-2xl mx-auto">
+                    <p class="text-gray-600 mb-6">Select a CSV file with headers: timestamp, name, country, age, profession, score.</p>
+                    <div class="mb-4">
+                        <input type="file" id="csv-file" accept=".csv" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100">
+                    </div>
+                    <button id="upload-button" class="w-full bg-purple-600 text-white font-bold py-3 rounded-lg hover:bg-purple-700 transition disabled:opacity-50">
+                        Upload to Firebase
+                    </button>
+                    <div id="status" class="mt-6 text-sm text-gray-700"></div>
+                </div>
+            </main>
+        </div>
     </div>
 
     <!-- Edit Modal -->
@@ -136,239 +164,7 @@
 
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-        // ВАЖНО: Вставьте сюда вашу конфигурацию Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyD9R43D9ktWxYFQtpkGJNTOgdWyZqfM-bU",
-            authDomain: "global-beauty-rank.firebaseapp.com",
-            projectId: "global-beauty-rank",
-            storageBucket: "global-beauty-rank.firebasestorage.app",
-            messagingSenderId: "916586590476",
-            appId: "1:916586590476:web:039be613c177dc46491929",
-            measurementId: "G-KPWTDXMHF"
-        };
-        
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        const modal = document.getElementById('password-modal');
-        const mainContent = document.getElementById('main-content');
-        const passwordInput = document.getElementById('password-input');
-        const passwordSubmit = document.getElementById('password-submit');
-        const passwordError = document.getElementById('password-error');
-        
-        window.onload = () => {
-            setTimeout(() => {
-                modal.querySelector('div').classList.remove('scale-95');
-            }, 10);
-        };
-
-        passwordSubmit.addEventListener('click', checkPassword);
-        passwordInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') checkPassword();
-        });
-
-        async function checkPassword() {
-            passwordSubmit.disabled = true;
-            passwordError.classList.add('hidden');
-
-            try {
-                const response = await fetch('/.netlify/functions/checkAdminPassword', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password: passwordInput.value })
-                });
-
-                if (response.ok) {
-                    modal.classList.add('opacity-0', 'pointer-events-none');
-                    mainContent.classList.remove('hidden');
-                    loadData();
-                } else {
-                    throw new Error("Incorrect password");
-                }
-            } catch (error) {
-                passwordError.classList.remove('hidden');
-                modal.querySelector('div').classList.add('animate-shake');
-                setTimeout(() => modal.querySelector('div').classList.remove('animate-shake'), 500);
-            } finally {
-                passwordSubmit.disabled = false;
-            }
-        }
-
-        const tableBody = document.getElementById('data-table-body');
-        let allData = [];
-
-        async function loadData() {
-            const q = query(collection(db, "rankings"), orderBy("timestamp", "desc"));
-            const querySnapshot = await getDocs(q);
-            allData = querySnapshot.docs.map(doc => ({ documentId: doc.id, ...doc.data() }));
-            renderTable(allData);
-            calculateStats(allData);
-        }
-
-        function renderTable(data) {
-            tableBody.innerHTML = '';
-            data.forEach(item => {
-                const row = document.createElement('tr');
-                row.className = 'bg-white border-b hover:bg-gray-50 transition-colors';
-                
-                const formattedDate = item.timestamp ? new Date(item.timestamp.seconds * 1000).toLocaleString() : 'N/A';
-                const paymentStatusClass = item.paymentStatus === 'Paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
-                const formattedAmount = item.paymentAmount ? `${item.paymentAmount.toFixed(2)} ${item.paymentCurrency || ''}` : 'N/A';
-
-                row.innerHTML = `
-                    <td class="px-6 py-4">${formattedDate}</td>
-                    <td class="px-6 py-4">${item.ip || 'N/A'}</td>
-                    <td class="px-6 py-4">${item.country || 'N/A'}</td>
-                    <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">${item.name || 'N/A'}</td>
-                    <td class="px-6 py-4">${item.gender || 'N/A'}</td>
-                    <td class="px-6 py-4">${item.age || 'N/A'}</td>
-                    <td class="px-6 py-4">${item.profession || 'N/A'}</td>
-                    <td class="px-6 py-4 font-bold text-purple-600">${item.score ? item.score.toFixed(2) : 'N/A'}</td>
-                    <td class="px-6 py-4"><span class="px-2 py-1 text-xs font-medium rounded-full ${paymentStatusClass}">${item.paymentStatus || 'N/A'}</span></td>
-                    <td class="px-6 py-4">${formattedAmount}</td>
-                    <td class="px-6 py-4">${item.paymentMethod || 'N/A'}</td>
-                    <td class="px-6 py-4">${item.trafficSource || 'N/A'}</td>
-                    <td class="px-6 py-4 flex items-center space-x-2">
-                        <button class="edit-btn text-blue-600 hover:text-blue-800" data-id="${item.documentId}">Edit</button>
-                        <button class="delete-btn text-red-600 hover:text-red-800" data-id="${item.documentId}">Delete</button>
-                    </td>
-                `;
-                tableBody.appendChild(row);
-            });
-            
-            addTableActionListeners();
-        }
-        
-        function calculateStats(data) {
-            document.getElementById('stat-total').textContent = data.length;
-            const paid = data.filter(item => item.paymentStatus === 'Paid');
-            document.getElementById('stat-paid').textContent = paid.length;
-            const revenue = paid.reduce((sum, item) => sum + (item.paymentAmount || 0), 0);
-            document.getElementById('stat-revenue').textContent = `$${revenue.toFixed(2)}`;
-            const totalScore = data.reduce((sum, item) => sum + (item.score || 0), 0);
-            const avgScore = data.length > 0 ? (totalScore / data.length) : 0;
-            document.getElementById('stat-avg-score').textContent = avgScore.toFixed(2);
-        }
-
-        // --- Modal and Actions Logic ---
-        const editModal = document.getElementById('edit-modal');
-        const editForm = document.getElementById('edit-form');
-
-        function addTableActionListeners() {
-            document.querySelectorAll('.edit-btn').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const id = e.target.dataset.id;
-                    const entry = allData.find(item => item.documentId === id);
-                    openEditModal(entry);
-                });
-            });
-
-            document.querySelectorAll('.delete-btn').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const id = e.target.dataset.id;
-                    if (confirm('Are you sure you want to delete this entry?')) {
-                        deleteEntry(id);
-                    }
-                });
-            });
-        }
-        
-        function openEditModal(entry) {
-            document.getElementById('edit-document-id').value = entry.documentId;
-            document.getElementById('edit-name').value = entry.name || '';
-            document.getElementById('edit-country').value = entry.country || '';
-            document.getElementById('edit-gender').value = entry.gender || '';
-            document.getElementById('edit-age').value = entry.age || '';
-            document.getElementById('edit-profession').value = entry.profession || '';
-            document.getElementById('edit-score').value = entry.score || 0;
-            editModal.classList.remove('hidden');
-            setTimeout(() => {
-                editModal.classList.remove('opacity-0');
-                editModal.querySelector('.modal-content').classList.remove('-translate-y-10');
-            }, 10);
-        }
-
-        function closeEditModal() {
-            editModal.classList.add('opacity-0');
-            editModal.querySelector('.modal-content').classList.add('-translate-y-10');
-            setTimeout(() => editModal.classList.add('hidden'), 300);
-        }
-        
-        document.getElementById('close-modal-btn').addEventListener('click', closeEditModal);
-        document.getElementById('cancel-edit-btn').addEventListener('click', closeEditModal);
-
-        editForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const documentId = document.getElementById('edit-document-id').value;
-            const updatedData = {
-                name: document.getElementById('edit-name').value,
-                country: document.getElementById('edit-country').value,
-                gender: document.getElementById('edit-gender').value,
-                age: document.getElementById('edit-age').value,
-                profession: document.getElementById('edit-profession').value,
-                score: parseFloat(document.getElementById('edit-score').value),
-            };
-            
-            try {
-                const response = await fetch('/.netlify/functions/updateRanking', {
-                    method: 'POST',
-                    body: JSON.stringify({ documentId, data: updatedData })
-                });
-                if (!response.ok) throw new Error('Failed to update');
-                closeEditModal();
-                loadData();
-            } catch (error) {
-                console.error("Update failed:", error);
-                alert("Could not update the entry.");
-            }
-        });
-
-        async function deleteEntry(documentId) {
-            try {
-                const response = await fetch('/.netlify/functions/deleteRanking', {
-                    method: 'POST',
-                    body: JSON.stringify({ documentId })
-                });
-                if (!response.ok) throw new Error('Failed to delete');
-                loadData();
-            } catch (error) {
-                console.error("Delete failed:", error);
-                alert("Could not delete the entry.");
-            }
-        }
-
-        // --- Sorting Logic ---
-        let sortDirection = {};
-        document.querySelectorAll('.table-sortable th').forEach(header => {
-            header.addEventListener('click', () => {
-                const sortKey = header.dataset.sort;
-                if (!sortKey) return;
-                sortDirection[sortKey] = sortDirection[sortKey] === 'asc' ? 'desc' : 'asc';
-
-                document.querySelectorAll('.table-sortable th').forEach(h => h.classList.remove('sorted-asc', 'sorted-desc'));
-                header.classList.add(sortDirection[sortKey] === 'asc' ? 'sorted-asc' : 'sorted-desc');
-
-                allData.sort((a, b) => {
-                    let valA = a[sortKey];
-                    let valB = b[sortKey];
-                    if (sortKey === 'timestamp') {
-                        valA = a.timestamp?.seconds || 0;
-                        valB = b.timestamp?.seconds || 0;
-                    }
-                    if (valA === undefined || valA === null) valA = '';
-                    if (valB === undefined || valB === null) valB = '';
-                    if (typeof valA === 'string') {
-                        return sortDirection[sortKey] === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
-                    }
-                    return sortDirection[sortKey] === 'asc' ? valA - valB : valB - valA;
-                });
-                renderTable(allData);
-            });
-        });
-
+        // Весь JavaScript будет добавлен на следующих шагах
     </script>
 </body>
 </html>
