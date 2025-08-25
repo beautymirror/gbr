@@ -360,6 +360,8 @@
                     const countryCounterEl = document.getElementById('country-counter');
                     if (data.rankings.countries && data.rankings.countries.length > 0) {
                         countryCounterEl.textContent = data.rankings.countries.length;
+                    } else {
+                        countryCounterEl.textContent = '163'; // Fallback
                     }
 
 
@@ -379,10 +381,10 @@
                 if (!timestamp?.seconds) return 'just now';
                 const now = new Date();
                 const past = new Date(timestamp.seconds * 1000);
-                const diffInSeconds = Math.floor((now - past) / 1000);
+                const diffInSeconds = Math.max(0, Math.floor((now - past) / 1000));
                 if (diffInSeconds < 60) return `${diffInSeconds}s ago`;
                 const diffInMinutes = Math.floor(diffInSeconds / 60);
-                if (diffInMinutes < 60) return `${diffInMinutes} min ago`;
+                if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
                 const diffInHours = Math.floor(diffInMinutes / 60);
                 if (diffInHours < 24) return `${diffInHours}h ago`;
                 const diffInDays = Math.floor(diffInHours / 24);
@@ -404,7 +406,7 @@
             
             function populateRankings(rankingsData) {
                 const container = document.getElementById('main-tabs-content');
-                container.innerHTML = ''; // Clear previous content
+                container.innerHTML = '';
                 
                 const tabMapping = {
                     'countries': rankingsData.countries,
@@ -422,7 +424,16 @@
                         data.forEach((item, itemIndex) => {
                             const medals = ['medal-gold.svg', 'medal-silver.svg', 'medal-bronze.svg'];
                             const rankHtml = itemIndex < 3 ? `<img src="${medals[itemIndex]}" alt="Medal" class="w-6 h-6">` : `<span class="font-bold text-lg text-gray-400 w-6 text-center">${itemIndex + 1}</span>`;
-                            const bgColor = itemIndex % 2 !== 0 ? 'bg-gray-50' : '';
+                            
+                            let bgColor = 'bg-transparent';
+                            if (item.gender && item.gender.toLowerCase() === 'female') {
+                                bgColor = 'bg-pink-50/50';
+                            } else if (item.gender && item.gender.toLowerCase() === 'male') {
+                                bgColor = 'bg-blue-50/50';
+                            } else if (itemIndex % 2 !== 0) {
+                                bgColor = 'bg-gray-50/50';
+                            }
+
                             const flagCode = getCountryCode(item.country || item.name);
                             const displayName = item.age ? `${item.name}, ${item.age}` : item.name;
 
