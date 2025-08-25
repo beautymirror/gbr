@@ -34,8 +34,11 @@ exports.handler = async (event) => {
       chunk.forEach(row => {
         const docRef = db.collection('rankings').doc();
         
-        // ИЗМЕНЕНИЕ: Убрана конвертация оценки
-        const score = parseFloat(row.score);
+        let score = parseFloat(row.score);
+        if (score > 10) {
+            score = score / 10;
+        }
+
         const formattedTimestamp = row.timestamp.replace(' ', 'T');
         const timestamp = admin.firestore.Timestamp.fromDate(new Date(formattedTimestamp));
         const countryName = countryCodeToName[row.country.toUpperCase()] || row.country || 'Unknown';
@@ -51,6 +54,8 @@ exports.handler = async (event) => {
             country: countryName,
             age: row.age || 'N/A',
             profession: row.profession || 'N/A',
+            // ИЗМЕНЕНИЕ: Добавлено поле gender
+            gender: row.gender || 'N/A',
             score: score,
             paymentStatus: 'Paid',
             ip: 'imported',
