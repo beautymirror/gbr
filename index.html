@@ -354,17 +354,8 @@
                     
                     populateMarquees(data.marqueeData);
                     populateRankings(data.rankings);
-                    
                     startFakeCounter(data.stats.totalCount);
                     
-                    const countryCounterEl = document.getElementById('country-counter');
-                    if (data.rankings.countries && data.rankings.countries.length > 0) {
-                        countryCounterEl.textContent = data.rankings.countries.length;
-                    } else {
-                        countryCounterEl.textContent = '163'; // Fallback
-                    }
-
-
                 } catch (error) {
                     console.error("Failed to load landing page stats:", error);
                 }
@@ -378,10 +369,11 @@
             }
 
             function formatTimeAgo(timestamp) {
-                if (!timestamp?.seconds) return 'just now';
+                if (!timestamp?.seconds) return 'a moment ago';
                 const now = new Date();
                 const past = new Date(timestamp.seconds * 1000);
                 const diffInSeconds = Math.max(0, Math.floor((now - past) / 1000));
+                if (diffInSeconds < 5) return 'just now';
                 if (diffInSeconds < 60) return `${diffInSeconds}s ago`;
                 const diffInMinutes = Math.floor(diffInSeconds / 60);
                 if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
