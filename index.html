@@ -191,12 +191,22 @@
                 <p class="mt-6 text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
                     Simply upload your photo to get your AI beauty rank. We use advanced technology to provide an objective score based on dozens of facial parameters.
                 </p>
-                <div class="mt-10">
-                    <a href="quiz.html" class="cta-button font-bold text-lg px-8 py-4 rounded-xl shadow-lg shadow-purple-500/10 inline-flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                        Start The Analysis
+                <div class="mt-10 flex flex-col items-center justify-center gap-6">
+                    <div class="clean-card max-w-2xl w-full mx-auto p-6 shadow-lg">
+                        <div class="flex items-center justify-around">
+                            <div>
+                                <p id="participant-counter" class="text-5xl md:text-6xl font-black logo-gradient-text">5,467,365</p>
+                                <p class="text-lg text-gray-500 mt-1">Participants</p>
+                            </div>
+                            <div class="h-20 w-px bg-gray-200"></div>
+                            <div>
+                                <p id="country-counter" class="text-5xl md:text-6xl font-black logo-gradient-text">163</p>
+                                <p class="text-lg text-gray-500 mt-1">Countries</p>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="quiz.html" class="cta-button font-bold text-lg px-12 py-4 rounded-xl shadow-lg shadow-purple-500/10 inline-flex items-center">
+                        Join
                     </a>
                 </div>
             </div>
@@ -272,35 +282,20 @@
                     <h2 class="text-4xl md:text-5xl font-extrabold tracking-tighter">World Beauty Ranking & Statistics</h2>
                     <p class="mt-3 text-gray-600 max-w-2xl mx-auto">Explore the data and see where your beauty rank fits in.</p>
                 </div>
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 reveal">
-                    <div class="lg:col-span-2 clean-card p-6 md:p-8 flex flex-col">
-                        <div class="p-1.5 bg-gray-100 rounded-xl flex items-center mb-6" id="main-tabs-nav">
-                            <button data-tab-target="#world" class="tab-button w-full text-center font-semibold py-2.5 rounded-lg transition active">World</button>
-                            <button data-tab-target="#countries" class="tab-button w-full text-center font-semibold py-2.5 rounded-lg transition">Countries</button>
-                            <button data-tab-target="#men" class="tab-button w-full text-center font-semibold py-2.5 rounded-lg transition">Men</button>
-                            <button data-tab-target="#women" class="tab-button w-full text-center font-semibold py-2.5 rounded-lg transition">Women</button>
-                        </div>
-                        <div id="main-tabs-content">
-                            <!-- Data will be populated by JS -->
-                        </div>
-                        <div class="pt-4 text-center border-t border-gray-100 mt-4">
-                            <button id="see-more-rankings" class="text-sm font-semibold text-purple-600 hover:text-purple-800 transition-colors">See more</button>
-                        </div>
+                <div class="clean-card p-6 md:p-8 flex flex-col">
+                    <div class="p-1.5 bg-gray-100 rounded-xl flex items-center mb-6" id="main-tabs-nav">
+                        <button data-tab-target="#countries" class="tab-button w-full text-center font-semibold py-2.5 rounded-lg transition active">Countries</button>
+                        <button data-tab-target="#men" class="tab-button w-full text-center font-semibold py-2.5 rounded-lg transition">Men</button>
+                        <button data-tab-target="#women" class="tab-button w-full text-center font-semibold py-2.5 rounded-lg transition">Women</button>
+                        <button data-tab-target="#all" class="tab-button w-full text-center font-semibold py-2.5 rounded-lg transition">All</button>
                     </div>
-                    <div class="space-y-8" id="statistics-cards">
-                        <!-- Stat cards will be populated by JS -->
-                        <div class="clean-card p-6 chart-container">
-                            <h3 class="font-bold text-xl mb-4">Total Analyses</h3>
-                            <p id="stat-total" class="text-4xl font-extrabold text-gray-800">Loading...</p>
-                        </div>
-                         <div class="clean-card p-6 chart-container">
-                            <h3 class="font-bold text-xl mb-4">Average Score</h3>
-                            <p id="stat-avg" class="text-4xl font-extrabold text-purple-600">Loading...</p>
-                        </div>
-                         <div class="clean-card p-6 chart-container">
-                            <h3 class="font-bold text-xl mb-4">Top Country</h3>
-                            <p id="stat-country" class="text-4xl font-extrabold text-gray-800">Loading...</p>
-                        </div>
+                    <div id="main-tabs-content">
+                        <!-- Data will be populated by JS -->
+                    </div>
+                    <div class="pt-6 text-center border-t border-gray-100 mt-4">
+                        <a href="statistics.html" class="cta-button font-bold px-8 py-3 rounded-lg inline-block">
+                            More statistics
+                        </a>
                     </div>
                 </div>
             </div>
@@ -357,17 +352,20 @@
                     }
                     const data = await response.json();
                     
-                    // Populate all sections with the fetched data
                     populateMarquees(data.marqueeData);
                     populateRankings(data.rankings);
-                    populateStats(data.stats);
+                    
+                    startFakeCounter(data.stats.totalCount);
+                    
+                    // Update country counter from fetched data if available
+                    const countryCounterEl = document.getElementById('country-counter');
+                    if (data.rankings.countries && data.rankings.countries.length > 0) {
+                        countryCounterEl.textContent = data.rankings.countries.length;
+                    }
+
 
                 } catch (error) {
                     console.error("Failed to load landing page stats:", error);
-                    // You can add fallback text here if the API fails
-                    document.getElementById('stat-total').textContent = 'N/A';
-                    document.getElementById('stat-avg').textContent = 'N/A';
-                    document.getElementById('stat-country').textContent = 'N/A';
                 }
             }
 
@@ -392,12 +390,6 @@
                 return `${diffInDays}d ago`;
             }
 
-            function populateStats(stats) {
-                document.getElementById('stat-total').textContent = stats.totalCount.toLocaleString('en-US');
-                document.getElementById('stat-avg').textContent = stats.avgScore.toFixed(2);
-                document.getElementById('stat-country').textContent = stats.topCountry;
-            }
-
             function populateMarquees(data) {
                 if (!data || data.length === 0) return;
                 let cardHTML = '';
@@ -414,25 +406,47 @@
             function populateRankings(rankingsData) {
                 const container = document.getElementById('main-tabs-content');
                 container.innerHTML = ''; // Clear previous content
+                
+                const tabMapping = {
+                    'countries': rankingsData.countries,
+                    'men': rankingsData.men,
+                    'women': rankingsData.women,
+                    'all': rankingsData.world
+                };
 
-                Object.keys(rankingsData).forEach((key, index) => {
-                    const isActive = key === 'world' ? 'active' : '';
+                Object.keys(tabMapping).forEach((key) => {
+                    const isActive = key === 'countries' ? 'active' : '';
                     let itemsHtml = '';
-                    rankingsData[key].forEach((item, itemIndex) => {
-                        const medals = ['medal-gold.svg', 'medal-silver.svg', 'medal-bronze.svg'];
-                        const rankHtml = itemIndex < 3 ? `<img src="${medals[itemIndex]}" alt="Medal" class="w-6 h-6">` : `<span class="font-bold text-lg text-gray-400 w-6 text-center">${itemIndex + 1}</span>`;
-                        const bgColor = itemIndex % 2 !== 0 ? 'bg-gray-50' : '';
-                        const isHidden = itemIndex >= 7 ? 'hidden' : '';
-                        const flagCode = getCountryCode(item.country || item.name);
-                        const displayName = item.age ? `${item.name}, ${item.age}` : item.name;
+                    const data = tabMapping[key];
 
-                        itemsHtml += `<div class="flex items-center justify-between p-3 rounded-lg ${bgColor} ranking-item ${isHidden}"><div class="flex items-center space-x-4"><div class="w-6 text-center">${rankHtml}</div><img src="https://flagcdn.com/w40/${flagCode}.png" width="40" alt="Flag" class="rounded-sm"><div><div class="font-semibold">${displayName}</div></div></div><div class="font-bold text-lg text-purple-600">${item.score.toFixed(3)}/10</div></div>`;
-                    });
-                     container.innerHTML += `<div id="${key}" class="tab-content ${isActive} space-y-2">${itemsHtml || '<p class="text-center text-gray-500 p-4">No data available yet.</p>'}</div>`;
+                    if (data && data.length > 0) {
+                        data.forEach((item, itemIndex) => {
+                            const medals = ['medal-gold.svg', 'medal-silver.svg', 'medal-bronze.svg'];
+                            const rankHtml = itemIndex < 3 ? `<img src="${medals[itemIndex]}" alt="Medal" class="w-6 h-6">` : `<span class="font-bold text-lg text-gray-400 w-6 text-center">${itemIndex + 1}</span>`;
+                            const bgColor = itemIndex % 2 !== 0 ? 'bg-gray-50' : '';
+                            const flagCode = getCountryCode(item.country || item.name);
+                            const displayName = item.age ? `${item.name}, ${item.age}` : item.name;
+
+                            itemsHtml += `<div class="flex items-center justify-between p-3 rounded-lg ${bgColor} ranking-item"><div class="flex items-center space-x-4"><div class="w-6 text-center">${rankHtml}</div><img src="https://flagcdn.com/w40/${flagCode}.png" width="40" alt="Flag" class="rounded-sm"><div><div class="font-semibold">${displayName}</div></div></div><div class="font-bold text-lg text-purple-600">${item.score.toFixed(3)}/10</div></div>`;
+                        });
+                    } else {
+                        itemsHtml = '<p class="text-center text-gray-500 p-4">No data available yet.</p>';
+                    }
+                    
+                    container.innerHTML += `<div id="${key}" class="tab-content ${isActive} space-y-2">${itemsHtml}</div>`;
                 });
             }
             
             // --- UI INTERACTIVITY ---
+
+            function startFakeCounter(initialCount) {
+                let participantCount = 5467365 + initialCount;
+                const counterElement = document.getElementById('participant-counter');
+                setInterval(() => {
+                    participantCount += Math.floor(Math.random() * 5) + 1;
+                    counterElement.textContent = participantCount.toLocaleString('en-US');
+                }, 500);
+            }
 
             document.getElementById('main-tabs-nav').addEventListener('click', (e) => {
                 const button = e.target.closest('.tab-button');
@@ -444,40 +458,16 @@
                 if (target) target.classList.add('active');
             });
 
-            const seeMoreRankingsBtn = document.getElementById('see-more-rankings');
-            if (seeMoreRankingsBtn) {
-                seeMoreRankingsBtn.addEventListener('click', () => {
-                    const activeTab = document.querySelector('#main-tabs-content .tab-content.active');
-                    if (!activeTab) return;
-                    const hiddenItems = activeTab.querySelectorAll('.ranking-item.hidden');
-                    const isExpanding = hiddenItems.length > 0;
-                    if (isExpanding) {
-                        hiddenItems.forEach(item => item.classList.remove('hidden'));
-                        seeMoreRankingsBtn.textContent = 'See less';
-                    } else {
-                        activeTab.querySelectorAll('.ranking-item').forEach((item, index) => {
-                            if (index >= 7) { item.classList.add('hidden'); }
-                        });
-                        seeMoreRankingsBtn.textContent = 'See more';
-                    }
-                });
-            }
-
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
-                        if (entry.target.classList.contains('chart-container')) {
-                            entry.target.querySelectorAll('.chart-bar').forEach(bar => {
-                                bar.style.width = bar.dataset.width;
-                            });
-                        }
                         entry.target.classList.add('visible');
                         observer.unobserve(entry.target);
                     }
                 });
             }, { threshold: 0.15 });
 
-            document.querySelectorAll('.reveal, .chart-container').forEach(el => {
+            document.querySelectorAll('.reveal').forEach(el => {
                 observer.observe(el);
             });
 
