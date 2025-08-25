@@ -58,7 +58,7 @@
 
         let currentStep = 0;
         const userData = {};
-        let stripe, elements;
+        let stripe, elements, cardElement;
         let preAnalyzedResult = null;
 
         const countries = ["Andorra", "United Arab Emirates", "Afghanistan", "Antigua and Barbuda", "Anguilla", "Albania", "Armenia", "Angola", "Antarctica", "Argentina", "American Samoa", "Austria", "Australia", "Aruba", "Åland Islands", "Azerbaijan", "Bosnia and Herzegovina", "Barbados", "Bangladesh", "Belgium", "Burkina Faso", "Bulgaria", "Bahrain", "Burundi", "Benin", "Saint Barthélemy", "Bermuda", "Brunei", "Bolivia", "Caribbean Netherlands", "Brazil", "Bahamas", "Bhutan", "Bouvet Island", "Botswana", "Belarus", "Belize", "Canada", "Cocos (Keeling) Islands", "DR Congo", "Central African Republic", "Republic of the Congo", "Switzerland", "Côte d'Ivoire (Ivory Coast)", "Cook Islands", "Chile", "Cameroon", "China", "Colombia", "Costa Rica", "Cuba", "Cape Verde", "Curaçao", "Christmas Island", "Cyprus", "Czechia", "Germany", "Djibouti", "Denmark", "Dominica", "Dominican Republic", "Algeria", "Ecuador", "Estonia", "Egypt", "Western Sahara", "Eritrea", "Spain", "Ethiopia", "Finland", "Fiji", "Falkland Islands", "Micronesia", "Faroe Islands", "France", "Gabon", "United Kingdom", "Grenada", "Georgia", "French Guiana", "Guernsey", "Ghana", "Gibraltar", "Greenland", "Gambia", "Guinea", "Guadeloupe", "Equatorial Guinea", "Greece", "South Georgia", "Guatemala", "Guam", "Guinea-Bissau", "Guyana", "Hong Kong", "Heard Island and McDonald Islands", "Honduras", "Croatia", "Haiti", "Hungary", "Indonesia", "Ireland", "Israel", "Isle of Man", "India", "British Indian Ocean Territory", "Iraq", "Iran", "Iceland", "Italy", "Jersey", "Jamaica", "Jordan", "Japan", "Kenya", "Kyrgyzstan", "Cambodia", "Kiribati", "Comoros", "Saint Kitts and Nevis", "North Korea", "South Korea", "Kuwait", "Cayman Islands", "Kazakhstan", "Laos", "Lebanon", "Saint Lucia", "Liechtenstein", "Sri Lanka", "Liberia", "Lesotho", "Lithuania", "Luxembourg", "Latvia", "Libya", "Morocco", "Monaco", "Moldova", "Montenegro", "Saint Martin", "Madagascar", "Marshall Islands", "North Macedonia", "Mali", "Myanmar", "Mongolia", "Macau", "Northern Mariana Islands", "Martinique", "Mauritania", "Montserrat", "Malta", "Mauritius", "Maldives", "Malawi", "Mexico", "Malaysia", "Mozambique", "Namibia", "New Caledonia", "Niger", "Norfolk Island", "Nigeria", "Nicaragua", "Netherlands", "Norway", "Nepal", "Nauru", "Niue", "New Zealand", "Oman", "Panama", "Peru", "French Polynesia", "Papua New Guinea", "Philippines", "Pakistan", "Poland", "Saint Pierre and Miquelon", "Pitcairn Islands", "Puerto Rico", "Palestine", "Portugal", "Palau", "Paraguay", "Qatar", "Réunion", "Romania", "Serbia", "Russia", "Rwanda", "Saudi Arabia", "Solomon Islands", "Seychelles", "Sudan", "Sweden", "Singapore", "Saint Helena Ascension and Tristan da Cunha", "Slovenia", "Svalbard and Jan Mayen", "Slovakia", "Sierra Leone", "San Marino", "Senegal", "Somalia", "Suriname", "South Sudan", "São Tomé and Príncipe", "El Salvador", "Sint Maarten", "Syria", "Eswatini (Swaziland)", "Turks and Caicos Islands", "Chad", "French Southern and Antarctic Lands", "Togo", "Thailand", "Tajikistan", "Tokelau", "Timor-Leste", "Turkmenistan", "Tunisia", "Tonga", "Turkey", "Trinidad and Tobago", "Tuvalu", "Taiwan", "Tanzania", "Ukraine", "Uganda", "United States Minor Outlying Islands", "United States", "Uruguay", "Uzbekistan", "Vatican City (Holy See)", "Saint Vincent and the Grenadines", "Venezuela", "British Virgin Islands", "United States Virgin Islands", "Vietnam", "Vanuatu", "Wallis and Futuna", "Samoa", "Kosovo", "Yemen", "Mayotte", "South Africa", "Zambia", "Zimbabwe"];
@@ -127,7 +127,7 @@
             paymentBubble.className = 'bot-bubble max-w-md p-4 sm:p-6 rounded-2xl rounded-bl-lg w-full';
             const form = document.createElement('form');
             form.id = 'payment-form';
-            // Reworked the HTML to use a single div for the Payment Element
+            // Switched back to a simpler HTML structure for the CardElement
             form.innerHTML = `
                 <div class="flex justify-between items-start">
                     <div>
@@ -139,7 +139,7 @@
                         <p class="text-2xl font-bold text-indigo-800" id="payment-amount-display">...</p>
                     </div>
                 </div>
-                <div id="payment-element" class="my-4"></div>
+                <div id="card-element" class="my-4 bg-white p-3 rounded-lg border border-indigo-200"></div>
                 <div id="payment-message" class="text-red-500 text-sm mt-2 h-4"></div>
                 <button id="submit-payment" class="w-full mt-4 cta-button font-bold text-lg px-8 py-3 rounded-xl flex items-center justify-center">
                     <span id="button-text">Pay and get result</span>
@@ -189,30 +189,43 @@
                 document.getElementById('payment-amount-display').textContent = formattedPrice;
                 buttonText.textContent = `Pay ${formattedPrice}`;
 
-                // Create and mount the modern Payment Element
-                elements = stripe.elements({ appearance: { theme: 'stripe' }, clientSecret });
-                const paymentElement = elements.create("payment");
-                paymentElement.mount("#payment-element");
+                // Create and mount the compact CardElement
+                elements = stripe.elements();
+                cardElement = elements.create("card");
+                cardElement.mount("#card-element");
+
+                cardElement.on('change', (event) => {
+                    if (event.error) {
+                        messageContainer.textContent = event.error.message;
+                    } else {
+                        messageContainer.textContent = '';
+                    }
+                });
 
                 form.addEventListener('submit', async (e) => {
                     e.preventDefault();
                     setLoading(true);
                     messageContainer.textContent = '';
 
-                    const { error } = await stripe.confirmPayment({
-                        elements,
-                        confirmParams: {
-                            return_url: window.location.href.split('?')[0],
-                        },
-                    });
+                    // Use confirmCardPayment for the CardElement
+                    const { error, paymentIntent } = await stripe.confirmCardPayment(
+                        clientSecret, {
+                            payment_method: {
+                                card: cardElement,
+                            }
+                        }
+                    );
                     
-                    if (error.type === "card_error" || error.type === "validation_error") {
+                    if (error) {
                         messageContainer.textContent = error.message;
+                        setLoading(false);
                     } else {
-                        messageContainer.textContent = "An unexpected error occurred.";
+                        // Payment succeeded, the checkPaymentStatus function will handle the redirect
+                        // It runs on page load and will see the payment_intent in the URL
+                        // We just need to wait for the redirect from Stripe
+                        messageContainer.textContent = "Payment successful! Redirecting...";
+                        // The page will be reloaded by Stripe after confirmation
                     }
-                    
-                    setLoading(false);
                 });
 
             } catch (error) {
