@@ -18,6 +18,7 @@
             background-color: #F9FAFB;
             position: relative;
         }
+        /* Animated Gradient Background */
         body::before {
             content: '';
             position: fixed;
@@ -79,6 +80,7 @@
             width: 0;
             transition: width 1.5s cubic-bezier(0.25, 1, 0.5, 1);
         }
+        /* Marquee styles */
         .marquee {
             overflow: hidden;
             position: relative;
@@ -98,6 +100,7 @@
             0% { transform: translateX(0); }
             100% { transform: translateX(-50%); }
         }
+        /* Scroll Animation */
         .reveal {
             opacity: 0;
             transform: translateY(50px);
@@ -110,15 +113,56 @@
         .ranking-item.hidden {
             display: none;
         }
-        .skeleton {
-            background-color: #e5e7eb;
-            border-radius: 0.5rem;
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        @keyframes pulse {
-            50% { opacity: .5; }
-        }
     </style>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [{
+        "@type": "Question",
+        "name": "How accurate is the AI beauty ranking analysis?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Our AI is trained on a massive dataset of diverse images to analyze objective facial metrics like symmetry and proportions. While it provides a consistent, data-driven score, remember that beauty is deeply personal and subjective. Consider our ranking a fun, technological perspective, not a final judgment."
+        }
+      },{
+        "@type": "Question",
+        "name": "Are my photos and data secure?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Absolutely. Your privacy is our top priority. Your photo is used for the one-time analysis and is deleted immediately from our servers. We never store or share your images. The only data we keep for statistical rankings (like your first name and country) is anonymized."
+        }
+      },{
+        "@type": "Question",
+        "name": "What exactly does the AI analyze?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The AI evaluates dozens of objective parameters. This includes facial symmetry, the 'golden ratio,' skin clarity (texture, not color), and the proportions between different facial features like eyes, nose, and mouth. It's a purely geometric and textural analysis."
+        }
+      },{
+        "@type": "Question",
+        "name": "Can I use a photo with glasses, a hat, or other people?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "For the most accurate results, please use a clear, forward-facing photo of just yourself, without glasses, hats, or heavy shadows. Obstructions can interfere with the AI's ability to analyze your facial features correctly."
+        }
+      },{
+        "@type": "Question",
+        "name": "Why isn't this service free?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Running a sophisticated AI model requires significant computational resources. The small service fee allows us to cover these costs, maintain the technology, and ensure the service remains ad-free and secure, without ever needing to sell user data."
+        }
+      },{
+        "@type": "Question",
+        "name": "What do I receive after the analysis?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "You'll receive your unique score on a 10-point scale, a brief AI-generated comment on your photo's strengths, and your anonymous placement in our global, country, and gender-based rankings."
+        }
+      }]
+    }
+    </script>
 </head>
 <body class="text-gray-900">
 
@@ -147,22 +191,12 @@
                 <p class="mt-6 text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
                     Simply upload your photo to get your AI beauty rank. We use advanced technology to provide an objective score based on dozens of facial parameters.
                 </p>
-                 <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8 max-w-2xl mx-auto">
-                    <div class="text-center">
-                        <p class="text-5xl font-black text-purple-600" id="participant-counter">5,467,789</p>
-                        <p class="mt-2 text-lg text-gray-600 font-semibold">Participants</p>
-                    </div>
-                    <div class="text-center">
-                        <p class="text-5xl font-black text-purple-600" id="country-counter">163</p>
-                        <p class="mt-2 text-lg text-gray-600 font-semibold">Countries</p>
-                    </div>
-                </div>
                 <div class="mt-10">
                     <a href="quiz.html" class="cta-button font-bold text-lg px-8 py-4 rounded-xl shadow-lg shadow-purple-500/10 inline-flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                           <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
-                        Join The Ranking
+                        Start The Analysis
                     </a>
                 </div>
             </div>
@@ -249,7 +283,7 @@
                         <div id="main-tabs-content">
                             </div>
                         <div class="pt-4 text-center border-t border-gray-100 mt-4">
-                            <a href="statistics.html" class="text-sm font-semibold text-purple-600 hover:text-purple-800 transition-colors">More statistics</a>
+                            <button id="see-more-rankings" class="text-sm font-semibold text-purple-600 hover:text-purple-800 transition-colors">See more</button>
                         </div>
                     </div>
                     <div class="space-y-8" id="statistics-cards">
@@ -298,22 +332,28 @@
     </div>
 
     <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD9R43D9ktWxYFQtpkGJNTOgdWyZqfM-bU",
+            authDomain: "global-beauty-rank.firebaseapp.com",
+            projectId: "global-beauty-rank",
+            storageBucket: "global-beauty-rank.firebasestorage.app",
+            messagingSenderId: "916586590476",
+            appId: "1:916586590476:web:039be613c177dc46491929",
+            measurementId: "G-KPWTDXMHF"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
         document.addEventListener('DOMContentLoaded', () => {
-            async function loadLandingData() {
-                try {
-                    const response = await fetch('/.netlify/functions/getLandingPageStats');
-                    if (!response.ok) throw new Error('Failed to fetch stats');
-                    const data = await response.json();
-
-                    populateMarquees(data.marqueeData);
-                    populateRankings(data.rankings);
-                    startFakeCounter(data.stats.totalCount);
-                    document.getElementById('country-counter').textContent = Math.max(163, data.stats.uniqueCountryCount);
-
-                } catch (error) {
-                    console.error("Error loading landing page data:", error);
-                }
-            }
+            const statsData = {
+                professions: { title: 'Top Professions', items: [ { label: 'Artist', score: 9.4 }, { label: 'Model', score: 9.3 }, { label: 'Doctor', score: 9.1 }, { label: 'Engineer', score: 8.9 }, { label: 'Teacher', score: 8.8 }, { label: 'Musician', score: 8.7 }, { label: 'Athlete', score: 8.6 }, { label: 'Programmer', score: 8.5 }, { label: 'Manager', score: 8.3 }, { label: 'Salesperson', score: 8.1 } ] },
+                womenByAge: { title: 'Top Age Group (Women)', items: [ { label: '18-25', score: 9.3 }, { label: '25-35', score: 9.1 }, { label: '< 18', score: 8.9 }, { label: '36-44', score: 8.7 }, { label: '45-59', score: 8.4 }, { label: '60+', score: 8.2 } ] },
+                menByAge: { title: 'Top Age Group (Men)', items: [ { label: '18-25', score: 9.0 }, { label: '25-35', score: 8.9 }, { label: '< 18', score: 8.8 }, { label: '36-44', score: 8.6 }, { label: '45-59', score: 8.3 }, { label: '60+', score: 8.1 } ] }
+            };
 
             function getCountryCode(countryName) {
                 const countryMap = {"Afghanistan":"af","Albania":"al","Algeria":"dz","American Samoa":"as","Andorra":"ad","Angola":"ao","Anguilla":"ai","Antarctica":"aq","Antigua and Barbuda":"ag","Argentina":"ar","Armenia":"am","Aruba":"aw","Australia":"au","Austria":"at","Azerbaijan":"az","Bahamas":"bs","Bahrain":"bh","Bangladesh":"bd","Barbados":"bb","Belarus":"by","Belgium":"be","Belize":"bz","Benin":"bj","Bermuda":"bm","Bhutan":"bt","Bolivia":"bo","Bosnia and Herzegovina":"ba","Botswana":"bw","Brazil":"br","British Indian Ocean Territory":"io","British Virgin Islands":"vg","Brunei":"bn","Bulgaria":"bg","Burkina Faso":"bf","Burundi":"bi","Cambodia":"kh","Cameroon":"cm","Canada":"ca","Cape Verde":"cv","Cayman Islands":"ky","Central African Republic":"cf","Chad":"td","Chile":"cl","China":"cn","Christmas Island":"cx","Cocos (Keeling) Islands":"cc","Colombia":"co","Comoros":"km","Cook Islands":"ck","Costa Rica":"cr","Croatia":"hr","Cuba":"cu","Curaçao":"cw","Cyprus":"cy","Czechia":"cz","Denmark":"dk","Djibouti":"dj","Dominica":"dm","Dominican Republic":"do","DR Congo":"cd","Ecuador":"ec","Egypt":"eg","El Salvador":"sv","Equatorial Guinea":"gq","Eritrea":"er","Estonia":"ee","Eswatini (Swaziland)":"sz","Ethiopia":"et","Falkland Islands":"fk","Faroe Islands":"fo","Fiji":"fj","Finland":"fi","France":"fr","French Guiana":"gf","French Polynesia":"pf","French Southern and Antarctic Lands":"tf","Gabon":"ga","Gambia":"gm","Georgia":"ge","Germany":"de","Ghana":"gh","Gibraltar":"gi","Greece":"gr","Greenland":"gl","Grenada":"gd","Guadeloupe":"gp","Guam":"gu","Guatemala":"gt","Guernsey":"gg","Guinea":"gn","Guinea-Bissau":"gw","Guyana":"gy","Haiti":"ht","Honduras":"hn","Hong Kong":"hk","Hungary":"hu","Iceland":"is","India":"in","Indonesia":"id","Iran":"ir","Iraq":"iq","Ireland":"ie","Isle of Man":"im","Israel":"il","Italy":"it","Ivory Coast":"ci","Jamaica":"jm","Japan":"jp","Jersey":"je","Jordan":"jo","Kazakhstan":"kz","Kenya":"ke","Kiribati":"ki","Kosovo":"xk","Kuwait":"kw","Kyrgyzstan":"kg","Laos":"la","Latvia":"lv","Lebanon":"lb","Lesotho":"ls","Liberia":"lr","Libya":"ly","Liechtenstein":"li","Lithuania":"lt","Luxembourg":"lu","Macau":"mo","Madagascar":"mg","Malawi":"mw","Malaysia":"my","Maldives":"mv","Mali":"ml","Malta":"mt","Marshall Islands":"mh","Martinique":"mq","Mauritania":"mr","Mauritius":"mu","Mayotte":"yt","Mexico":"mx","Micronesia":"fm","Moldova":"md","Monaco":"mc","Mongolia":"mn","Montenegro":"me","Montserrat":"ms","Morocco":"ma","Mozambique":"mz","Myanmar":"mm","Namibia":"na","Nauru":"nr","Nepal":"np","Netherlands":"nl","New Caledonia":"nc","New Zealand":"nz","Nicaragua":"ni","Niger":"ne","Nigeria":"ng","Niue":"nu","Norfolk Island":"nf","North Korea":"kp","North Macedonia":"mk","Northern Mariana Islands":"mp","Norway":"no","Oman":"om","Pakistan":"pk","Palau":"pw","Palestine":"ps","Panama":"pa","Papua New Guinea":"pg","Paraguay":"py","Peru":"pe","Philippines":"ph","Pitcairn Islands":"pn","Poland":"pl","Portugal":"pt","Puerto Rico":"pr","Qatar":"qa","Republic of the Congo":"cg","Romania":"ro","Russia":"ru","Rwanda":"rw","Réunion":"re","Saint Barthélemy":"bl","Saint Helena Ascension and Tristan da Cunha":"sh","Saint Kitts and Nevis":"kn","Saint Lucia":"lc","Saint Martin":"mf","Saint Pierre and Miquelon":"pm","Saint Vincent and the Grenadines":"vc","Samoa":"ws","San Marino":"sm","Saudi Arabia":"sa","Senegal":"sn","Serbia":"rs","Seychelles":"sc","Sierra Leone":"sl","Singapore":"sg","Sint Maarten":"sx","Slovakia":"sk","Slovenia":"si","Solomon Islands":"sb","Somalia":"so","South Africa":"za","South Korea":"kr","South Sudan":"ss","Spain":"es","Sri Lanka":"lk","Sudan":"sd","Suriname":"sr","Svalbard and Jan Mayen":"sj","Sweden":"se","Switzerland":"ch","Syria":"sy","São Tomé and Príncipe":"st","Taiwan":"tw","Tajikistan":"tj","Tanzania":"tz","Thailand":"th","Timor-Leste":"tl","Togo":"tg","Tokelau":"tk","Tonga":"to","Trinidad and Tobago":"tt","Tunisia":"tn","Turkey":"tr","Turkmenistan":"tm","Turks and Caicos Islands":"tc","Tuvalu":"tv","Uganda":"ug","Ukraine":"ua","United Arab Emirates":"ae","United Kingdom":"gb","United States":"us","United States Minor Outlying Islands":"um","United States Virgin Islands":"vi","Uruguay":"uy","Uzbekistan":"uz","Vanuatu":"vu","Vatican City (Holy See)":"va","Venezuela":"ve","Vietnam":"vn","Wallis and Futuna":"wf","Western Sahara":"eh","Yemen":"ye","Zambia":"zm","Zimbabwe":"zw"};
@@ -334,6 +374,27 @@
                 return `${diffInDays}d ago`;
             }
 
+            const mainQuery = query(collection(db, "rankings"));
+            let fakeCounterStarted = false;
+
+            onSnapshot(mainQuery, (snapshot) => {
+                const allRankings = snapshot.docs.map(doc => doc.data());
+
+                if (!fakeCounterStarted) {
+                    startFakeCounter(allRankings.length);
+                    fakeCounterStarted = true;
+                }
+
+                const uniqueCountries = new Set(allRankings.map(item => item.country).filter(Boolean));
+                document.getElementById('country-counter').textContent = Math.max(163, uniqueCountries.size);
+
+                const sortedByTime = [...allRankings].sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+                populateMarquees(sortedByTime.slice(0, 10));
+                
+                const sortedByScore = [...allRankings].sort((a, b) => b.score - a.score);
+                populateRankings(sortedByScore);
+            });
+
             function startFakeCounter(initialCount) {
                 let participantCount = 5467789 + initialCount;
                 const counterElement = document.getElementById('participant-counter');
@@ -349,48 +410,139 @@
                     const flagCode = getCountryCode(item.country);
                     const timeAgo = formatTimeAgo(item.timestamp);
                     cardHTML += `<div class="clean-card p-4 flex items-center space-x-4 mx-3 flex-shrink-0" style="width: 280px;"><img src="https://flagcdn.com/w80/${flagCode}.png" width="40" height="30" alt="Flag of ${item.country}" class="rounded-md"><div class="flex-grow"><p class="font-bold">${item.name}, ${item.age}</p><p class="text-sm text-gray-500">${timeAgo}</p></div><p class="text-2xl font-extrabold logo-gradient-text">${item.score.toFixed(3)}</p></div>`;
+            });
+            document.querySelectorAll('.marquee-content').forEach(container => {
+                container.innerHTML = cardHTML + cardHTML;
+            });
+        }
+            
+            function aggregateByCountry(rankings) {
+                const countryScores = {};
+                rankings.forEach(r => {
+                    if (r.country && r.country !== 'Unknown') {
+                        if (!countryScores[r.country]) {
+                            countryScores[r.country] = { total: 0, count: 0 };
+                        }
+                        countryScores[r.country].total += r.score;
+                        countryScores[r.country].count++;
+                    }
                 });
-                document.getElementById('marquee-1').innerHTML = cardHTML + cardHTML;
+                return Object.keys(countryScores).map(country => ({
+                    name: country,
+                    score: countryScores[country].total / countryScores[country].count
+                })).sort((a, b) => b.score - a.score);
             }
 
-            function populateRankings(rankingsData) {
+            function populateRankings(allRankings) {
+                const rankingsData = {
+                    world: allRankings,
+                    countries: aggregateByCountry(allRankings),
+                    men: allRankings.filter(r => r.gender && r.gender.toLowerCase() === 'male'),
+                    women: allRankings.filter(r => r.gender && r.gender.toLowerCase() === 'female')
+                };
+
                 const container = document.getElementById('main-tabs-content');
-                container.innerHTML = '';
                 const tabOrder = ['countries', 'men', 'women', 'world'];
+
+                container.innerHTML = '';
                 tabOrder.forEach((key, index) => {
-                    const isActive = key === 'countries' ? 'active' : '';
+                    const isActive = index === 0 ? 'active' : '';
                     let itemsHtml = '';
                     rankingsData[key].forEach((item, itemIndex) => {
                         const medals = ['medal-gold.svg', 'medal-silver.svg', 'medal-bronze.svg'];
                         const rankHtml = itemIndex < 3 ? `<img src="${medals[itemIndex]}" alt="Medal" class="w-6 h-6">` : `<span class="font-bold text-lg text-gray-400 w-6 text-center">${itemIndex + 1}</span>`;
                         const bgColor = itemIndex % 2 !== 0 ? 'bg-gray-50' : '';
+                        const isHidden = itemIndex >= 7 ? 'hidden' : '';
                         const flagCode = getCountryCode(item.country || item.name);
                         const displayName = item.age ? `${item.name}, ${item.age}` : item.name;
-                        itemsHtml += `<div class="flex items-center justify-between p-3 rounded-lg ${bgColor} ranking-item"><div class="flex items-center space-x-4"><div class="w-6 text-center">${rankHtml}</div><img src="https://flagcdn.com/w40/${flagCode}.png" width="40" alt="Flag" class="rounded-sm"><div><div class="font-semibold">${displayName}</div></div></div><div class="font-bold text-lg text-purple-600">${item.score.toFixed(3)}/10</div></div>`;
+
+                        itemsHtml += `<div class="flex items-center justify-between p-3 rounded-lg ${bgColor} ranking-item ${isHidden}"><div class="flex items-center space-x-4"><div class="w-6 text-center">${rankHtml}</div><img src="https://flagcdn.com/w40/${flagCode}.png" width="40" alt="Flag" class="rounded-sm"><div><div class="font-semibold">${displayName}</div></div></div><div class="font-bold text-lg text-purple-600">${item.score.toFixed(3)}/10</div></div>`;
                     });
                     container.innerHTML += `<div id="${key}" class="tab-content ${isActive} space-y-2">${itemsHtml}</div>`;
                 });
             }
             
-            loadLandingData();
-            
-            const tabsNav = document.getElementById('main-tabs-nav');
-            if (tabsNav) {
-                tabsNav.addEventListener('click', (e) => {
-                    const button = e.target.closest('.tab-button');
-                    if (!button) return;
-                    document.querySelectorAll('#main-tabs-nav .tab-button').forEach(btn => btn.classList.remove('active'));
-                    button.classList.add('active');
-                    const target = document.querySelector(button.dataset.tabTarget);
-                    document.querySelectorAll('#main-tabs-content .tab-content').forEach(content => content.classList.remove('active'));
-                    if (target) target.classList.add('active');
+            const statsContainer = document.getElementById('statistics-cards');
+            statsContainer.innerHTML = createStatsCard(statsData.professions) + createStatsCard(statsData.womenByAge) + createStatsCard(statsData.menByAge);
+
+            function createStatsCard(data) {
+                let itemsHtml = '';
+                data.items.forEach((item, index) => {
+                    const percentage = (item.score / 10) * 100;
+                    const isHidden = index >= 3 ? 'hidden' : '';
+                    itemsHtml += `<div class="flex items-center py-1 ${isHidden}" data-expandable><span class="w-24 text-sm font-medium text-gray-600">${item.label}</span><div class="chart-bar-bg"><div class="chart-bar" data-width="${percentage}%"></div></div><span class="w-10 text-right text-sm font-bold text-purple-600">${item.score.toFixed(1)}</span></div>`;
+                });
+                return `<div class="clean-card p-6 chart-container"><h3 class="font-bold text-xl mb-4">${data.title}</h3><div class="space-y-2">${itemsHtml}</div>${data.items.length > 3 ? '<button class="see-more-btn mt-4 text-sm font-semibold text-purple-600 hover:text-purple-800">See more</button>' : ''}</div>`;
+            }
+
+            document.getElementById('main-tabs-nav').addEventListener('click', (e) => {
+                const button = e.target.closest('.tab-button');
+                if (!button) return;
+                document.querySelectorAll('#main-tabs-nav .tab-button').forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                const target = document.querySelector(button.dataset.tabTarget);
+                document.querySelectorAll('#main-tabs-content .tab-content').forEach(content => content.classList.remove('active'));
+                if (target) target.classList.add('active');
+            });
+
+            document.querySelectorAll('.see-more-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const card = button.closest('.clean-card');
+                    const hiddenItems = card.querySelectorAll('[data-expandable]');
+                    const isExpanded = button.textContent === 'See less';
+                    hiddenItems.forEach(item => item.classList.toggle('hidden', isExpanded));
+                    button.textContent = isExpanded ? 'See more' : 'See less';
+                });
+            });
+
+            const seeMoreRankingsBtn = document.getElementById('see-more-rankings');
+            if (seeMoreRankingsBtn) {
+                seeMoreRankingsBtn.addEventListener('click', () => {
+                    const activeTab = document.querySelector('#main-tabs-content .tab-content.active');
+                    if (!activeTab) return;
+                    const hiddenItems = activeTab.querySelectorAll('.ranking-item.hidden');
+                    const isExpanding = hiddenItems.length > 0;
+                    if (isExpanding) {
+                        hiddenItems.forEach(item => item.classList.remove('hidden'));
+                        seeMoreRankingsBtn.textContent = 'See less';
+                    } else {
+                        activeTab.querySelectorAll('.ranking-item').forEach((item, index) => {
+                            if (index >= 7) { item.classList.add('hidden'); }
+                        });
+                        seeMoreRankingsBtn.textContent = 'See more';
+                    }
                 });
             }
-            
-            const seeMoreRankingsBtn = document.getElementById('see-more-rankings');
-            if(seeMoreRankingsBtn) {
-                seeMoreRankingsBtn.addEventListener('click', () => {
-                   window.location.href = 'statistics.html';
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        if (entry.target.classList.contains('chart-container')) {
+                            entry.target.querySelectorAll('.chart-bar').forEach(bar => {
+                                bar.style.width = bar.dataset.width;
+                            });
+                        }
+                        entry.target.classList.add('visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.15 });
+
+            document.querySelectorAll('.reveal, .chart-container').forEach(el => {
+                observer.observe(el);
+            });
+
+            const cookieBanner = document.getElementById('cookie-consent-banner');
+            const acceptButton = document.getElementById('accept-cookies');
+            if (cookieBanner && acceptButton) {
+                if (!localStorage.getItem('cookiesAccepted')) {
+                    setTimeout(() => {
+                        cookieBanner.classList.remove('translate-y-full');
+                    }, 1500);
+                }
+                acceptButton.addEventListener('click', () => {
+                    localStorage.setItem('cookiesAccepted', 'true');
+                    cookieBanner.classList.add('translate-y-full');
                 });
             }
         });
