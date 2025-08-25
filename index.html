@@ -282,7 +282,7 @@
                     <h2 class="text-4xl md:text-5xl font-extrabold tracking-tighter">World Beauty Ranking & Statistics</h2>
                     <p class="mt-3 text-gray-600 max-w-2xl mx-auto">Explore the data and see where your beauty rank fits in.</p>
                 </div>
-                <div class="clean-card p-6 md:p-8 flex flex-col">
+                <div class="clean-card max-w-4xl mx-auto p-6 md:p-8 flex flex-col">
                     <div class="p-1.5 bg-gray-100 rounded-xl flex items-center mb-6" id="main-tabs-nav">
                         <button data-tab-target="#countries" class="tab-button w-full text-center font-semibold py-2.5 rounded-lg transition active">Countries</button>
                         <button data-tab-target="#men" class="tab-button w-full text-center font-semibold py-2.5 rounded-lg transition">Men</button>
@@ -357,7 +357,6 @@
                     
                     startFakeCounter(data.stats.totalCount);
                     
-                    // Update country counter from fetched data if available
                     const countryCounterEl = document.getElementById('country-counter');
                     if (data.rankings.countries && data.rankings.countries.length > 0) {
                         countryCounterEl.textContent = data.rankings.countries.length;
@@ -381,8 +380,8 @@
                 const now = new Date();
                 const past = new Date(timestamp.seconds * 1000);
                 const diffInSeconds = Math.floor((now - past) / 1000);
+                if (diffInSeconds < 60) return `${diffInSeconds}s ago`;
                 const diffInMinutes = Math.floor(diffInSeconds / 60);
-                if (diffInMinutes < 1) return 'just now';
                 if (diffInMinutes < 60) return `${diffInMinutes} min ago`;
                 const diffInHours = Math.floor(diffInMinutes / 60);
                 if (diffInHours < 24) return `${diffInHours}h ago`;
