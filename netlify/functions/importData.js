@@ -34,7 +34,8 @@ exports.handler = async (event) => {
       chunk.forEach(row => {
         const docRef = db.collection('rankings').doc();
         
-        const score = parseFloat(row.score) / 10;
+        // ИЗМЕНЕНИЕ: Убрана конвертация оценки
+        const score = parseFloat(row.score);
         const formattedTimestamp = row.timestamp.replace(' ', 'T');
         const timestamp = admin.firestore.Timestamp.fromDate(new Date(formattedTimestamp));
         const countryName = countryCodeToName[row.country.toUpperCase()] || row.country || 'Unknown';
