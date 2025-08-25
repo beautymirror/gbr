@@ -127,7 +127,7 @@
             paymentBubble.className = 'bot-bubble max-w-md p-4 sm:p-6 rounded-2xl rounded-bl-lg w-full';
             const form = document.createElement('form');
             form.id = 'payment-form';
-            // Switched back to a simpler HTML structure for the CardElement
+            // Re-added the payment-request-button div and a divider
             form.innerHTML = `
                 <div class="flex justify-between items-start">
                     <div>
@@ -139,6 +139,8 @@
                         <p class="text-2xl font-bold text-indigo-800" id="payment-amount-display">...</p>
                     </div>
                 </div>
+                <div id="payment-request-button" class="my-4"></div>
+                <p id="divider-text" class="text-center text-sm text-gray-500 hidden my-2">OR PAY WITH CARD</p>
                 <div id="card-element" class="my-4 bg-white p-3 rounded-lg border border-indigo-200"></div>
                 <div id="payment-message" class="text-red-500 text-sm mt-2 h-4"></div>
                 <button id="submit-payment" class="w-full mt-4 cta-button font-bold text-lg px-8 py-3 rounded-xl flex items-center justify-center">
@@ -183,16 +185,62 @@
                 if (!paymentData || !paymentData.clientSecret) {
                     throw new Error("Invalid response from server");
                 }
-                const { clientSecret, amount, currency } = paymentData;
+                const { clientSecret, amount, currency, countryCode } = paymentData;
                 
                 const formattedPrice = new Intl.NumberFormat('en-US', { style: 'currency', currency: currency.toUpperCase() }).format(amount / 100);
                 document.getElementById('payment-amount-display').textContent = formattedPrice;
                 buttonText.textContent = `Pay ${formattedPrice}`;
 
-                // Create and mount the compact CardElement
                 elements = stripe.elements();
                 cardElement = elements.create("card");
                 cardElement.mount("#card-element");
+
+                // --- Google/Apple Pay Logic ---
+                const paymentRequest = stripe.paymentRequest({
+                    country: countryCode,
+                    currency: currency.toLowerCase(),
+                    total: {
+                        label: 'Beauty Analysis',
+                        amount: amount,
+                    },
+                    requestPayerName: true,
+                    requestPayerEmail: true,
+                });
+
+                const prButton = elements.create('paymentRequestButton', {
+                    paymentRequest,
+                });
+
+                const canMakePayment = await paymentRequest.canMakePayment();
+                if (canMakePayment) {
+                    prButton.mount('#payment-request-button');
+                    document.getElementById('divider-text').classList.remove('hidden');
+                } else {
+                    document.getElementById('payment-request-button').style.display = 'none';
+                }
+
+                paymentRequest.on('paymentmethod', async (ev) => {
+                    const { paymentIntent, error: confirmError } = await stripe.confirmCardPayment(
+                        clientSecret,
+                        { payment_method: ev.paymentMethod.id },
+                        { handleActions: false }
+                    );
+
+                    if (confirmError) {
+                        ev.complete('fail');
+                        messageContainer.textContent = confirmError.message;
+                    } else {
+                        ev.complete('success');
+                        if (paymentIntent.status === "requires_action") {
+                           const { error } = await stripe.confirmCardPayment(clientSecret);
+                           if (error) {
+                               messageContainer.textContent = "Payment failed. Please try another method.";
+                           }
+                        }
+                        // The page will be reloaded by checkPaymentStatus on redirect
+                    }
+                });
+                // --- End Google/Apple Pay Logic ---
 
                 cardElement.on('change', (event) => {
                     if (event.error) {
@@ -207,8 +255,7 @@
                     setLoading(true);
                     messageContainer.textContent = '';
 
-                    // Use confirmCardPayment for the CardElement
-                    const { error, paymentIntent } = await stripe.confirmCardPayment(
+                    const { error } = await stripe.confirmCardPayment(
                         clientSecret, {
                             payment_method: {
                                 card: cardElement,
@@ -220,11 +267,7 @@
                         messageContainer.textContent = error.message;
                         setLoading(false);
                     } else {
-                        // Payment succeeded, the checkPaymentStatus function will handle the redirect
-                        // It runs on page load and will see the payment_intent in the URL
-                        // We just need to wait for the redirect from Stripe
                         messageContainer.textContent = "Payment successful! Redirecting...";
-                        // The page will be reloaded by Stripe after confirmation
                     }
                 });
 
