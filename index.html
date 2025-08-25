@@ -67,22 +67,6 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        /* ИЗМЕНЕНО: Стили для анимированных гистограмм */
-        .chart-bar-bg {
-            background-color: #f3f4f6;
-            border-radius: 9999px;
-            height: 0.75rem;
-            flex-grow: 1;
-            margin: 0 0.75rem;
-        }
-        .chart-bar {
-            background: linear-gradient(90deg, #D946EF, #8B5CF6);
-            height: 100%;
-            border-radius: 9999px;
-            width: 0;
-            transition: width 1.5s cubic-bezier(0.25, 1, 0.5, 1);
-        }
-
         /* Marquee styles */
         .marquee {
             overflow: hidden;
@@ -207,7 +191,6 @@
             </div>
         </section>
 
-        <!-- ВОЗВРАЩЕНО: Блок "бегущей строки" -->
         <section class="py-20 space-y-4">
             <div class="text-center mb-8 reveal">
                 <h2 class="text-3xl font-bold tracking-tighter">Recent Beauty Rank Analyses</h2>
@@ -279,7 +262,6 @@
                     <h2 class="text-4xl md:text-5xl font-extrabold tracking-tighter">World Ranking & Statistics</h2>
                     <p class="mt-3 text-gray-600 max-w-2xl mx-auto">Explore the data and see where you stand.</p>
                 </div>
-                <!-- ИЗМЕНЕНО: Секция с рейтингом теперь использует анимированные гистограммы -->
                 <div class="clean-card max-w-4xl mx-auto p-6 md:p-8 flex flex-col">
                     <div class="p-1.5 bg-gray-100 rounded-xl flex items-center mb-6" id="main-tabs-nav">
                         <button data-tab-target="#countries" class="tab-button w-full text-center font-semibold py-2.5 rounded-lg transition active">Countries</button>
@@ -288,7 +270,7 @@
                         <button data-tab-target="#all" class="tab-button w-full text-center font-semibold py-2.5 rounded-lg transition">All</button>
                     </div>
                     <div id="main-tabs-content" class="relative">
-                        <!-- Данные и гистограммы будут заполнены JS -->
+                        <!-- Data will be populated by JS -->
                     </div>
                 </div>
             </div>
@@ -391,7 +373,7 @@
                 });
             }
             
-            // ИЗМЕНЕНО: Функция теперь создает гистограммы
+            // ИЗМЕНЕНО: Функция теперь создает простой список с медалями
             function populateRankings(rankingsData) {
                 const container = document.getElementById('main-tabs-content');
                 container.innerHTML = '';
@@ -410,24 +392,25 @@
 
                     if (data && data.length > 0) {
                         data.forEach((item, itemIndex) => {
-                            const rankHtml = itemIndex < 3 ? `<img src="https://img.icons8.com/color/48/000000/medal-${itemIndex === 0 ? 'first' : itemIndex === 1 ? 'second' : 'third'}-place.png" alt="Medal" class="w-6 h-6">` : `<span class="font-bold text-lg text-gray-400 w-6 text-center">${itemIndex + 1}</span>`;
+                            // НОВОЕ: Встроенные SVG для медалей
+                            const medals = [
+                                `<svg class="w-6 h-6" viewBox="0 0 24 24"><defs><linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#fdd835;stop-opacity:1" /><stop offset="100%" style="stop-color:#f57f17;stop-opacity:1" /></linearGradient></defs><path fill="url(#gold)" d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/><path fill="#fdd835" d="M12 12.75L14.47 14.5l-.9-2.85L16 9.75h-2.8l-.9-2.85L11.4 9.75H8.6l2.43 1.9-0.9 2.85z"/></svg>`,
+                                `<svg class="w-6 h-6" viewBox="0 0 24 24"><defs><linearGradient id="silver" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#e0e0e0;stop-opacity:1" /><stop offset="100%" style="stop-color:#9e9e9e;stop-opacity:1" /></linearGradient></defs><path fill="url(#silver)" d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/><path fill="#e0e0e0" d="M12 12.75L14.47 14.5l-.9-2.85L16 9.75h-2.8l-.9-2.85L11.4 9.75H8.6l2.43 1.9-0.9 2.85z"/></svg>`,
+                                `<svg class="w-6 h-6" viewBox="0 0 24 24"><defs><linearGradient id="bronze" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#d7ccc8;stop-opacity:1" /><stop offset="100%" style="stop-color:#a1887f;stop-opacity:1" /></linearGradient></defs><path fill="url(#bronze)" d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/><path fill="#d7ccc8" d="M12 12.75L14.47 14.5l-.9-2.85L16 9.75h-2.8l-.9-2.85L11.4 9.75H8.6l2.43 1.9-0.9 2.85z"/></svg>`
+                            ];
+                            const rankHtml = itemIndex < 3 ? medals[itemIndex] : `<span class="font-bold text-lg text-gray-400 w-6 text-center">${itemIndex + 1}</span>`;
                             const flagCode = getCountryCode(item.country || item.name);
                             const displayName = item.age ? `${item.name}, ${item.age}` : item.name;
-                            const scorePercentage = (item.score / 10) * 100;
+                            const bgColor = itemIndex % 2 !== 0 ? 'bg-gray-50/50' : 'bg-transparent';
 
                             itemsHtml += `
-                            <div class="ranking-item reveal py-2">
-                                <div class="flex items-center justify-between mb-1">
-                                    <div class="flex items-center space-x-4">
-                                        <div class="w-6 text-center">${rankHtml}</div>
-                                        <img src="https://flagcdn.com/w40/${flagCode}.png" width="30" alt="Flag" class="rounded-sm">
-                                        <div class="font-semibold">${displayName}</div>
-                                    </div>
-                                    <div class="font-bold text-purple-600">${item.score.toFixed(2)}/10</div>
+                            <div class="flex items-center justify-between p-3 rounded-lg ${bgColor} ranking-item">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-6 text-center flex-shrink-0">${rankHtml}</div>
+                                    <img src="https://flagcdn.com/w40/${flagCode}.png" width="30" alt="Flag" class="rounded-sm">
+                                    <div><div class="font-semibold">${displayName}</div></div>
                                 </div>
-                                <div class="chart-bar-bg">
-                                    <div class="chart-bar" data-score="${scorePercentage}" style="width: 0%;"></div>
-                                </div>
+                                <div class="font-bold text-lg text-purple-600">${item.score.toFixed(3)}/10</div>
                             </div>`;
                         });
                     } else {
@@ -436,9 +419,7 @@
                     
                     container.innerHTML += `<div id="${key}" class="tab-content ${isActive} space-y-2">${itemsHtml}</div>`;
                 });
-                // Перезапускаем observer для новых элементов
                 document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-                document.querySelectorAll('.chart-bar').forEach(bar => chartObserver.observe(bar));
             }
             
             // --- Interactivity ---
@@ -463,18 +444,6 @@
                 if (target) target.classList.add('active');
             });
             
-            // ИЗМЕНЕНО: IntersectionObserver для анимации гистограмм
-            const chartObserver = new IntersectionObserver((entries, observer) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const bar = entry.target;
-                        bar.style.width = bar.dataset.score + '%';
-                        observer.unobserve(bar);
-                    }
-                });
-            }, { threshold: 0.5 });
-
-
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
