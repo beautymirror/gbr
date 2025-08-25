@@ -66,6 +66,15 @@
         }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
+
+        /* ИЗМЕНЕНО: Стили для анимированных гистограмм */
+        .chart-bar-bg {
+            background-color: #f3f4f6;
+            border-radius: 9999px;
+            height: 0.75rem;
+            flex-grow: 1;
+            margin: 0 0.75rem;
+        }
         .chart-bar {
             background: linear-gradient(90deg, #D946EF, #8B5CF6);
             height: 100%;
@@ -73,6 +82,7 @@
             width: 0;
             transition: width 1.5s cubic-bezier(0.25, 1, 0.5, 1);
         }
+
         /* Marquee styles */
         .marquee {
             overflow: hidden;
@@ -103,7 +113,7 @@
             opacity: 1;
             transform: translateY(0);
         }
-        /* NEW: Styles for connecting line in "How It Works" */
+        /* Styles for connecting line in "How It Works" */
         .how-it-works-container {
             position: relative;
         }
@@ -166,7 +176,6 @@
     <main>
         <section class="relative py-24 md:py-32 overflow-hidden">
             <div class="container mx-auto px-6 text-center relative z-10">
-                <!-- CHANGED: More intriguing headline -->
                 <h1 class="text-5xl md:text-7xl font-black text-gray-900 leading-tight tracking-tighter">
                     How Does Artificial Intelligence <span class="logo-gradient-text">See Your Beauty?</span>
                 </h1>
@@ -174,7 +183,6 @@
                     One snapshot for an objective assessment of your attractiveness. Our technology analyzes dozens of facial parameters for an accurate and unbiased result.
                 </p>
                 <div class="mt-10 flex flex-col items-center justify-center gap-6">
-                    <!-- NEW: Interactive card instead of static counters -->
                     <div class="group clean-card max-w-md w-full mx-auto p-6 shadow-lg cursor-pointer relative overflow-hidden">
                         <div class="relative flex items-center justify-center h-48">
                             <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=500&auto=format&fit=crop" alt="Sample face for analysis" class="absolute inset-0 w-full h-full object-cover rounded-lg transition-transform duration-500 group-hover:scale-110">
@@ -192,7 +200,6 @@
                     <a href="quiz.html" class="cta-button font-bold text-lg px-12 py-4 rounded-xl shadow-lg shadow-purple-500/10 inline-flex items-center">
                         Find Out Your Ranking
                     </a>
-                    <!-- NEW: Social proof block -->
                     <div class="mt-4 text-gray-500 text-sm">
                         <p>⭐️⭐️⭐️⭐️⭐️ 4.9/5 based on 10,000+ reviews</p>
                     </div>
@@ -200,7 +207,20 @@
             </div>
         </section>
 
-        <!-- CHANGED: Added classes for connecting line animation -->
+        <!-- ВОЗВРАЩЕНО: Блок "бегущей строки" -->
+        <section class="py-20 space-y-4">
+            <div class="text-center mb-8 reveal">
+                <h2 class="text-3xl font-bold tracking-tighter">Recent Beauty Rank Analyses</h2>
+                <p class="text-gray-500 mt-1">See who just got their beauty score.</p>
+            </div>
+            <div class="marquee">
+                <div class="marquee-content" id="marquee-1"></div>
+            </div>
+            <div class="marquee">
+                <div class="marquee-content reverse" id="marquee-2"></div>
+            </div>
+        </section>
+
         <section id="how-it-works" class="py-24 bg-white/50 backdrop-blur-md">
             <div class="container mx-auto px-6">
                 <div class="text-center mb-16 reveal">
@@ -208,7 +228,6 @@
                     <p class="mt-3 text-gray-600 max-w-2xl mx-auto">Get an objective beauty score in three easy steps.</p>
                 </div>
                 <div class="max-w-3xl mx-auto how-it-works-container">
-                    <!-- NEW: Connecting line -->
                     <div class="connecting-line hidden md:block">
                         <div id="connecting-line-progress" class="connecting-line-progress"></div>
                     </div>
@@ -260,19 +279,8 @@
                     <h2 class="text-4xl md:text-5xl font-extrabold tracking-tighter">World Ranking & Statistics</h2>
                     <p class="mt-3 text-gray-600 max-w-2xl mx-auto">Explore the data and see where you stand.</p>
                 </div>
+                <!-- ИЗМЕНЕНО: Секция с рейтингом теперь использует анимированные гистограммы -->
                 <div class="clean-card max-w-4xl mx-auto p-6 md:p-8 flex flex-col">
-                    <!-- NEW: Interactive slider -->
-                    <div class="mb-8 p-6 bg-purple-50 rounded-xl">
-                        <label for="score-slider" class="block text-center text-xl font-bold text-purple-800">Try On Your Score!</label>
-                        <p class="text-center text-gray-600 mb-4">Move the slider to see where you would rank.</p>
-                        <div class="flex items-center gap-4">
-                            <span class="font-bold text-gray-500">0</span>
-                            <input id="score-slider" type="range" min="0" max="10" value="7.5" step="0.1" class="w-full h-2 bg-purple-200 rounded-lg appearance-none cursor-pointer">
-                            <span class="font-bold text-gray-500">10</span>
-                        </div>
-                        <p id="slider-result" class="text-center mt-4 text-lg font-semibold text-gray-700"></p>
-                    </div>
-
                     <div class="p-1.5 bg-gray-100 rounded-xl flex items-center mb-6" id="main-tabs-nav">
                         <button data-tab-target="#countries" class="tab-button w-full text-center font-semibold py-2.5 rounded-lg transition active">Countries</button>
                         <button data-tab-target="#men" class="tab-button w-full text-center font-semibold py-2.5 rounded-lg transition">Men</button>
@@ -280,7 +288,7 @@
                         <button data-tab-target="#all" class="tab-button w-full text-center font-semibold py-2.5 rounded-lg transition">All</button>
                     </div>
                     <div id="main-tabs-content" class="relative">
-                        <!-- Data will be populated by JS -->
+                        <!-- Данные и гистограммы будут заполнены JS -->
                     </div>
                 </div>
             </div>
@@ -292,7 +300,6 @@
                     <h2 class="text-4xl md:text-5xl font-extrabold tracking-tighter">Frequently Asked Questions</h2>
                 </div>
                 <div class="space-y-4">
-                    <!-- CHANGED: Added icons to FAQ -->
                     <div class="clean-card"><details class="p-6 cursor-pointer group"><summary class="font-semibold text-lg flex justify-between items-center"><span class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>How accurate is the analysis?</span><span class="text-purple-500 transition group-open:rotate-45">+</span></summary><p class="mt-4 text-gray-600">Our AI is trained on a massive dataset of diverse images to analyze objective facial metrics like symmetry and proportions. Remember that beauty is subjective. Consider our ranking a fun, technological perspective, not a final judgment.</p></details></div>
                     <div class="clean-card"><details class="p-6 cursor-pointer group"><summary class="font-semibold text-lg flex justify-between items-center"><span class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>Is my data secure?</span><span class="text-purple-500 transition group-open:rotate-45">+</span></summary><p class="mt-4 text-gray-600">Absolutely. <strong>Your privacy is our top priority.</strong> Your photo is used for the one-time analysis and is <strong>immediately deleted</strong> from our servers. We never store or share your images.</p></details></div>
                     <div class="clean-card"><details class="p-6 cursor-pointer group"><summary class="font-semibold text-lg flex justify-between items-center"><span class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>What does the AI analyze?</span><span class="text-purple-500 transition group-open:rotate-45">+</span></summary><p class="mt-4 text-gray-600">The AI evaluates dozens of objective parameters: facial symmetry, the 'golden ratio,' skin clarity (texture, not color), and proportions between facial features. It's a purely geometric and textural analysis.</p></details></div>
@@ -331,7 +338,6 @@
                     populateMarquees(data.marqueeData);
                     populateRankings(data.rankings);
                     startFakeCounter(data.stats.totalCount);
-                    setupSlider(data.rankings.world); // Setup slider
                     
                 } catch (error) {
                     console.error("Failed to load stats:", error);
@@ -340,7 +346,6 @@
 
             // --- UI Population Functions ---
             function getCountryCode(countryName) {
-                // Country map (abbreviated for example)
                 const countryMap = {"Afghanistan":"af","Albania":"al","Algeria":"dz","Andorra":"ad","Angola":"ao","Argentina":"ar","Australia":"au","Austria":"at","Belarus":"by","Belgium":"be","Brazil":"br","Canada":"ca","China":"cn","Denmark":"dk","Egypt":"eg","Finland":"fi","France":"fr","Germany":"de","Greece":"gr","India":"in","Italy":"it","Japan":"jp","Mexico":"mx","Netherlands":"nl","Norway":"no","Poland":"pl","Portugal":"pt","Russia":"ru","Spain":"es","Sweden":"se","Switzerland":"ch","Turkey":"tr","Ukraine":"ua","United Kingdom":"gb","United States":"us"};
                 return countryMap[countryName] || 'un';
             }
@@ -360,7 +365,6 @@
                 return `${diffInDays}d ago`;
             }
 
-            // CHANGED: Added wrapper for hover effect and additional info
             function populateMarquees(data) {
                 if (!data || data.length === 0) return;
                 let cardHTML = '';
@@ -376,7 +380,6 @@
                             <p class="text-sm text-gray-500">${timeAgo}</p>
                         </div>
                         <p class="text-2xl font-extrabold logo-gradient-text">${item.score.toFixed(3)}</p>
-                        <!-- NEW: Pop-up block with additional info -->
                         <div class="absolute inset-0 bg-white bg-opacity-95 backdrop-blur-sm rounded-lg p-4 flex flex-col justify-center items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                             <p class="font-bold text-lg">${item.country}</p>
                             <p class="text-gray-600">${profession}</p>
@@ -388,6 +391,7 @@
                 });
             }
             
+            // ИЗМЕНЕНО: Функция теперь создает гистограммы
             function populateRankings(rankingsData) {
                 const container = document.getElementById('main-tabs-content');
                 container.innerHTML = '';
@@ -409,8 +413,22 @@
                             const rankHtml = itemIndex < 3 ? `<img src="https://img.icons8.com/color/48/000000/medal-${itemIndex === 0 ? 'first' : itemIndex === 1 ? 'second' : 'third'}-place.png" alt="Medal" class="w-6 h-6">` : `<span class="font-bold text-lg text-gray-400 w-6 text-center">${itemIndex + 1}</span>`;
                             const flagCode = getCountryCode(item.country || item.name);
                             const displayName = item.age ? `${item.name}, ${item.age}` : item.name;
+                            const scorePercentage = (item.score / 10) * 100;
 
-                            itemsHtml += `<div class="flex items-center justify-between p-3 rounded-lg ranking-item" data-score="${item.score.toFixed(3)}"><div class="flex items-center space-x-4"><div class="w-6 text-center">${rankHtml}</div><img src="https://flagcdn.com/w40/${flagCode}.png" width="40" alt="Flag" class="rounded-sm"><div><div class="font-semibold">${displayName}</div></div></div><div class="font-bold text-lg text-purple-600">${item.score.toFixed(3)}/10</div></div>`;
+                            itemsHtml += `
+                            <div class="ranking-item reveal py-2">
+                                <div class="flex items-center justify-between mb-1">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="w-6 text-center">${rankHtml}</div>
+                                        <img src="https://flagcdn.com/w40/${flagCode}.png" width="30" alt="Flag" class="rounded-sm">
+                                        <div class="font-semibold">${displayName}</div>
+                                    </div>
+                                    <div class="font-bold text-purple-600">${item.score.toFixed(2)}/10</div>
+                                </div>
+                                <div class="chart-bar-bg">
+                                    <div class="chart-bar" data-score="${scorePercentage}" style="width: 0%;"></div>
+                                </div>
+                            </div>`;
                         });
                     } else {
                         itemsHtml = '<p class="text-center text-gray-500 p-4">No data available yet.</p>';
@@ -418,6 +436,9 @@
                     
                     container.innerHTML += `<div id="${key}" class="tab-content ${isActive} space-y-2">${itemsHtml}</div>`;
                 });
+                // Перезапускаем observer для новых элементов
+                document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+                document.querySelectorAll('.chart-bar').forEach(bar => chartObserver.observe(bar));
             }
             
             // --- Interactivity ---
@@ -440,51 +461,19 @@
                 const target = document.querySelector(targetId);
                 document.querySelectorAll('#main-tabs-content .tab-content').forEach(content => content.classList.remove('active'));
                 if (target) target.classList.add('active');
-                // Update slider for the new active tab
-                const newSliderData = allRankingsData[targetId.substring(1)];
-                setupSlider(newSliderData);
             });
-
-            // NEW: Logic for interactive slider
-            function setupSlider(data) {
-                const slider = document.getElementById('score-slider');
-                const resultText = document.getElementById('slider-result');
-                if (!slider || !data || data.length === 0) {
-                    if(resultText) resultText.textContent = "Ranking not available for this category.";
-                    return;
-                };
-
-                const updateSliderResult = () => {
-                    const value = parseFloat(slider.value);
-                    let rank = data.length + 1;
-                    for (let i = 0; i < data.length; i++) {
-                        if (value > data[i].score) {
-                            rank = i + 1;
-                            break;
-                        }
+            
+            // ИЗМЕНЕНО: IntersectionObserver для анимации гистограмм
+            const chartObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const bar = entry.target;
+                        bar.style.width = bar.dataset.score + '%';
+                        observer.unobserve(bar);
                     }
-                    resultText.innerHTML = `Your score: <span class="text-purple-600 font-black">${value.toFixed(1)}</span>. Potential rank: <span class="text-purple-600 font-black">~${rank}</span>`;
-                    
-                    // Highlight in the list
-                    const activeTab = document.querySelector('.tab-content.active');
-                    if(activeTab) {
-                        activeTab.querySelectorAll('.ranking-item').forEach(item => {
-                            item.classList.remove('bg-purple-100', 'rounded-xl', 'scale-105', 'shadow-lg', 'z-10', 'relative');
-                            item.style.transition = 'all 0.3s ease';
-                        });
+                });
+            }, { threshold: 0.5 });
 
-                        if(rank <= data.length) {
-                             const targetItem = activeTab.querySelector(`.ranking-item:nth-child(${rank})`);
-                             if(targetItem) {
-                                 targetItem.classList.add('bg-purple-100', 'rounded-xl', 'scale-105', 'shadow-lg', 'z-10', 'relative');
-                             }
-                        }
-                    }
-                };
-                
-                slider.oninput = updateSliderResult;
-                updateSliderResult(); // Initial call
-            }
 
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
@@ -497,7 +486,6 @@
 
             document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-            // NEW: Logic for connecting line animation
             const lineProgress = document.getElementById('connecting-line-progress');
             const steps = document.querySelectorAll('[data-step]');
             const stepObserver = new IntersectionObserver((entries) => {
