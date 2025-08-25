@@ -28,30 +28,9 @@ exports.handler = async (event, context) => {
     const sortedByScore = [...allRankings].sort((a, b) => b.score - a.score);
     const sortedByTime = [...allRankings].sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
 
-    // --- Расчет статистики ---
-    const revenue = paidRankings.reduce((sum, item) => sum + (item.paymentAmount || 0), 0);
-    const totalScore = allRankings.reduce((sum, item) => sum + (item.score || 0), 0);
-    const avgScore = allRankings.length > 0 ? (totalScore / allRankings.length) : 0;
-    
-    const countryScores = {};
-    allRankings.forEach(r => {
-        if (r.country && r.country !== 'Unknown') {
-            if (!countryScores[r.country]) {
-                countryScores[r.country] = { total: 0, count: 0 };
-            }
-            countryScores[r.country].total += r.score;
-            countryScores[r.country].count++;
-        }
-    });
-    const topCountry = Object.keys(countryScores).map(country => ({
-        name: country,
-        avgScore: countryScores[country].total / countryScores[country].count
-    })).sort((a, b) => b.avgScore - a.avgScore)[0];
-
-
     // --- Агрегация по странам ---
     const countryAggregates = {};
-    sortedByScore.forEach(r => {
+    allRankings.forEach(r => {
         if (r.country && r.country !== 'Unknown') {
             if (!countryAggregates[r.country]) {
                 countryAggregates[r.country] = { total: 0, count: 0 };
@@ -66,6 +45,11 @@ exports.handler = async (event, context) => {
     })).sort((a, b) => b.score - a.score);
 
 
+    // --- Расчет статистики ---
+    const revenue = paidRankings.reduce((sum, item) => sum + (item.paymentAmount || 0), 0);
+    const totalScore = allRankings.reduce((sum, item) => sum + (item.score || 0), 0);
+    const avgScore = allRankings.length > 0 ? (totalScore / allRankings.length) : 0;
+    
     // --- Формирование итогового объекта ---
     const payload = {
         stats: {
@@ -73,11 +57,17 @@ exports.handler = async (event, context) => {
             paidCount: paidRankings.length,
             revenue: revenue,
             avgScore: avgScore,
-            topCountry: topCountry ? topCountry.name : 'N/A'
+            topCountry: countryRanking.length > 0 ? countryRanking[0].name : 'N/A',
+            // FIX: Add the total number of unique countries
+            totalCountries: Object.keys(countryAggregates).length
         },
-        marqueeData: sortedByTime.slice(0, 10),
+        // FIX: Explicitly map the data to ensure the timestamp object is preserved for JSON serialization
+        marqueeData: sortedByTime.slice(0, 10).map(item => ({
+            ...item,
+            timestamp: item.timestamp ? { seconds: item.timestamp.seconds, nanoseconds: item.timestamp.nanoseconds } : null
+        })),
         rankings: {
-            world: sortedByScore.slice(0, 9), // Только топ-9
+            world: sortedByScore.slice(0, 9),
             countries: countryRanking.slice(0, 9),
             men: sortedByScore.filter(r => r.gender && r.gender.toLowerCase() === 'male').slice(0, 9),
             women: sortedByScore.filter(r => r.gender && r.gender.toLowerCase() === 'female').slice(0, 9)
