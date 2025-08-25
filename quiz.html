@@ -137,9 +137,7 @@
             try {
                 stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
                 const response = await fetch(createPaymentIntentUrl, { 
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ country: userData.country })
+                    method: 'POST'
                 });
 
                 if (!response.ok) {
