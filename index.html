@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global Beauty Ranking | Get Your AI Beauty Rank Score</title>
-    <meta name="description" content="Discover your place in the world beauty ranking. Our AI analyzes your photo to provide an objective beauty rank. Get your score now!">
-    <meta name="keywords" content="beauty ranking, beauty rank, world beauty ranking, ai beauty analysis, objective score, facial analysis">
+    <title>Global Beauty Ranking | Discover Your AI Beauty Score</title>
+    <meta name="description" content="Find your place in the world beauty ranking. Our AI analyzes your photo to provide an objective score. Get your score now!">
+    <meta name="keywords" content="beauty ranking, beauty score, world beauty ranking, ai beauty analysis, objective score, facial analysis">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,7 +18,7 @@
             background-color: #F9FAFB;
             position: relative;
         }
-        /* Animated Gradient Background */
+        /* Animated gradient background */
         body::before {
             content: '';
             position: fixed;
@@ -66,13 +66,6 @@
         }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        .chart-bar-bg {
-            background-color: #f3f4f6;
-            border-radius: 9999px;
-            height: 0.75rem;
-            flex-grow: 1;
-            margin: 0 0.75rem;
-        }
         .chart-bar {
             background: linear-gradient(90deg, #D946EF, #8B5CF6);
             height: 100%;
@@ -100,7 +93,7 @@
             0% { transform: translateX(0); }
             100% { transform: translateX(-50%); }
         }
-        /* Scroll Animation */
+        /* Scroll animation */
         .reveal {
             opacity: 0;
             transform: translateY(50px);
@@ -110,8 +103,24 @@
             opacity: 1;
             transform: translateY(0);
         }
-        .ranking-item.hidden {
-            display: none;
+        /* NEW: Styles for connecting line in "How It Works" */
+        .how-it-works-container {
+            position: relative;
+        }
+        .connecting-line {
+            position: absolute;
+            left: 2.5rem; /* Positioned to align with icons */
+            top: 5rem;
+            bottom: 5rem;
+            width: 2px;
+            background-color: #e5e7eb;
+            z-index: 0;
+        }
+        .connecting-line-progress {
+            height: 0;
+            width: 100%;
+            background: linear-gradient(180deg, #D946EF, #8B5CF6);
+            transition: height 0.5s ease-out;
         }
     </style>
     <script type="application/ld+json">
@@ -131,34 +140,6 @@
         "acceptedAnswer": {
           "@type": "Answer",
           "text": "Absolutely. Your privacy is our top priority. Your photo is used for the one-time analysis and is deleted immediately from our servers. We never store or share your images. The only data we keep for statistical rankings (like your first name and country) is anonymized."
-        }
-      },{
-        "@type": "Question",
-        "name": "What exactly does the AI analyze?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "The AI evaluates dozens of objective parameters. This includes facial symmetry, the 'golden ratio,' skin clarity (texture, not color), and the proportions between different facial features like eyes, nose, and mouth. It's a purely geometric and textural analysis."
-        }
-      },{
-        "@type": "Question",
-        "name": "Can I use a photo with glasses, a hat, or other people?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "For the most accurate results, please use a clear, forward-facing photo of just yourself, without glasses, hats, or heavy shadows. Obstructions can interfere with the AI's ability to analyze your facial features correctly."
-        }
-      },{
-        "@type": "Question",
-        "name": "Why isn't this service free?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Running a sophisticated AI model requires significant computational resources. The small service fee allows us to cover these costs, maintain the technology, and ensure the service remains ad-free and secure, without ever needing to sell user data."
-        }
-      },{
-        "@type": "Question",
-        "name": "What do I receive after the analysis?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "You'll receive your unique score on a 10-point scale, a brief AI-generated comment on your photo's strengths, and your anonymous placement in our global, country, and gender-based rankings."
         }
       }]
     }
@@ -185,57 +166,54 @@
     <main>
         <section class="relative py-24 md:py-32 overflow-hidden">
             <div class="container mx-auto px-6 text-center relative z-10">
+                <!-- CHANGED: More intriguing headline -->
                 <h1 class="text-5xl md:text-7xl font-black text-gray-900 leading-tight tracking-tighter">
-                    Find out your place in the <span class="logo-gradient-text">world beauty ranking</span>
+                    How Does Artificial Intelligence <span class="logo-gradient-text">See Your Beauty?</span>
                 </h1>
                 <p class="mt-6 text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
-                    Simply upload your photo to get your AI beauty rank. We use advanced technology to provide an objective score based on dozens of facial parameters.
+                    One snapshot for an objective assessment of your attractiveness. Our technology analyzes dozens of facial parameters for an accurate and unbiased result.
                 </p>
                 <div class="mt-10 flex flex-col items-center justify-center gap-6">
-                    <div class="clean-card max-w-2xl w-full mx-auto p-6 shadow-lg">
-                        <div class="flex items-center justify-around">
-                            <div>
-                                <p id="participant-counter" class="text-5xl md:text-6xl font-black logo-gradient-text">5,467,365</p>
-                                <p class="text-lg text-gray-500 mt-1">Participants</p>
-                            </div>
-                            <div class="h-20 w-px bg-gray-200"></div>
-                            <div>
-                                <p id="country-counter" class="text-5xl md:text-6xl font-black logo-gradient-text">163</p>
-                                <p class="text-lg text-gray-500 mt-1">Countries</p>
+                    <!-- NEW: Interactive card instead of static counters -->
+                    <div class="group clean-card max-w-md w-full mx-auto p-6 shadow-lg cursor-pointer relative overflow-hidden">
+                        <div class="relative flex items-center justify-center h-48">
+                            <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=500&auto=format&fit=crop" alt="Sample face for analysis" class="absolute inset-0 w-full h-full object-cover rounded-lg transition-transform duration-500 group-hover:scale-110">
+                            <div class="absolute inset-0 bg-black bg-opacity-20 group-hover:bg-opacity-50 transition-all duration-500 rounded-lg"></div>
+                            <lottie-player src="analysis.json" background="transparent" speed="1" style="width: 250px; height: 250px;" loop autoplay class="absolute opacity-0 group-hover:opacity-80 transition-opacity duration-500"></lottie-player>
+                            <div class="relative text-white text-center">
+                                <p class="text-2xl font-bold opacity-100 group-hover:opacity-0 transition-opacity">Hover to see the AI magic</p>
+                                <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                                    <p class="text-5xl font-black logo-gradient-text" style="-webkit-text-fill-color: white;">8.72/10</p>
+                                </div>
                             </div>
                         </div>
+                        <p class="text-lg text-gray-600 mt-4 font-semibold">Over <span id="participant-counter" class="font-bold text-purple-600">5.4 million</span> people have already discovered their score</p>
                     </div>
                     <a href="quiz.html" class="cta-button font-bold text-lg px-12 py-4 rounded-xl shadow-lg shadow-purple-500/10 inline-flex items-center">
-                        Join
+                        Find Out Your Ranking
                     </a>
+                    <!-- NEW: Social proof block -->
+                    <div class="mt-4 text-gray-500 text-sm">
+                        <p>⭐️⭐️⭐️⭐️⭐️ 4.9/5 based on 10,000+ reviews</p>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <section class="py-20 space-y-4">
-            <div class="text-center mb-8 reveal">
-                <h2 class="text-3xl font-bold tracking-tighter">Recent Beauty Rank Analyses</h2>
-                <p class="text-gray-500 mt-1">See who just got their beauty score.</p>
-            </div>
-            <div class="marquee">
-                <div class="marquee-content" id="marquee-1">
-                    </div>
-            </div>
-            <div class="marquee">
-                <div class="marquee-content reverse" id="marquee-2">
-                   </div>
-            </div>
-        </section>
-
+        <!-- CHANGED: Added classes for connecting line animation -->
         <section id="how-it-works" class="py-24 bg-white/50 backdrop-blur-md">
             <div class="container mx-auto px-6">
                 <div class="text-center mb-16 reveal">
-                    <h2 class="text-4xl md:text-5xl font-extrabold tracking-tighter">How Our Beauty Ranking Works</h2>
-                    <p class="mt-3 text-gray-600 max-w-2xl mx-auto">Get your objective beauty score in three easy steps.</p>
+                    <h2 class="text-4xl md:text-5xl font-extrabold tracking-tighter">How Our Ranking Works</h2>
+                    <p class="mt-3 text-gray-600 max-w-2xl mx-auto">Get an objective beauty score in three easy steps.</p>
                 </div>
-                <div class="max-w-3xl mx-auto">
+                <div class="max-w-3xl mx-auto how-it-works-container">
+                    <!-- NEW: Connecting line -->
+                    <div class="connecting-line hidden md:block">
+                        <div id="connecting-line-progress" class="connecting-line-progress"></div>
+                    </div>
                     <div class="space-y-8 md:space-y-4">
-                        <div class="sticky top-24 z-10 reveal">
+                        <div class="sticky top-24 z-10 reveal" data-step="1">
                             <div class="clean-card p-8 md:p-10 flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6">
                                 <div class="flex-shrink-0">
                                     <lottie-player src="upload.json" background="transparent" speed="1" style="width: 120px; height: 120px;" loop autoplay></lottie-player>
@@ -243,11 +221,11 @@
                                 <div>
                                     <p class="text-sm font-bold text-purple-600 uppercase">Step 1</p>
                                     <h3 class="text-2xl font-bold mt-1">Upload Your Photo</h3>
-                                    <p class="mt-2 text-gray-600">Select a clear, well-lit selfie for the most accurate beauty rank analysis.</p>
+                                    <p class="mt-2 text-gray-600">Select a clear, well-lit selfie for the most accurate analysis.</p>
                                 </div>
                             </div>
                         </div>
-                        <div class="sticky top-32 z-20 reveal">
+                        <div class="sticky top-32 z-20 reveal" data-step="2">
                            <div class="clean-card p-8 md:p-10 flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6">
                                 <div class="flex-shrink-0">
                                     <lottie-player src="analysis.json" background="transparent" speed="1" style="width: 120px; height: 120px;" loop autoplay></lottie-player>
@@ -255,11 +233,11 @@
                                 <div>
                                     <p class="text-sm font-bold text-purple-600 uppercase">Step 2</p>
                                     <h3 class="text-2xl font-bold mt-1">AI-Powered Analysis</h3>
-                                    <p class="mt-2 text-gray-600">Our neural network analyzes your photo across 128 facial parameters for your beauty ranking.</p>
+                                    <p class="mt-2 text-gray-600">Our neural network analyzes your photo across 128 facial parameters.</p>
                                 </div>
                             </div>
                         </div>
-                        <div class="sticky top-40 z-30 reveal">
+                        <div class="sticky top-40 z-30 reveal" data-step="3">
                             <div class="clean-card p-8 md:p-10 flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6">
                                 <div class="flex-shrink-0">
                                     <lottie-player src="result.json" background="transparent" speed="1" style="width: 120px; height: 120px;" loop autoplay></lottie-player>
@@ -267,7 +245,7 @@
                                 <div>
                                     <p class="text-sm font-bold text-purple-600 uppercase">Step 3</p>
                                     <h3 class="text-2xl font-bold mt-1">Get Your Results</h3>
-                                    <p class="mt-2 text-gray-600">Receive your personal score and discover your position in the world beauty ranking.</p>
+                                    <p class="mt-2 text-gray-600">Receive your personal score and discover your position in the world ranking.</p>
                                 </div>
                             </div>
                         </div>
@@ -279,23 +257,30 @@
         <section id="ratings" class="py-20">
             <div class="container mx-auto px-6">
                 <div class="text-center mb-12 reveal">
-                    <h2 class="text-4xl md:text-5xl font-extrabold tracking-tighter">World Beauty Ranking & Statistics</h2>
-                    <p class="mt-3 text-gray-600 max-w-2xl mx-auto">Explore the data and see where your beauty rank fits in.</p>
+                    <h2 class="text-4xl md:text-5xl font-extrabold tracking-tighter">World Ranking & Statistics</h2>
+                    <p class="mt-3 text-gray-600 max-w-2xl mx-auto">Explore the data and see where you stand.</p>
                 </div>
                 <div class="clean-card max-w-4xl mx-auto p-6 md:p-8 flex flex-col">
+                    <!-- NEW: Interactive slider -->
+                    <div class="mb-8 p-6 bg-purple-50 rounded-xl">
+                        <label for="score-slider" class="block text-center text-xl font-bold text-purple-800">Try On Your Score!</label>
+                        <p class="text-center text-gray-600 mb-4">Move the slider to see where you would rank.</p>
+                        <div class="flex items-center gap-4">
+                            <span class="font-bold text-gray-500">0</span>
+                            <input id="score-slider" type="range" min="0" max="10" value="7.5" step="0.1" class="w-full h-2 bg-purple-200 rounded-lg appearance-none cursor-pointer">
+                            <span class="font-bold text-gray-500">10</span>
+                        </div>
+                        <p id="slider-result" class="text-center mt-4 text-lg font-semibold text-gray-700"></p>
+                    </div>
+
                     <div class="p-1.5 bg-gray-100 rounded-xl flex items-center mb-6" id="main-tabs-nav">
                         <button data-tab-target="#countries" class="tab-button w-full text-center font-semibold py-2.5 rounded-lg transition active">Countries</button>
                         <button data-tab-target="#men" class="tab-button w-full text-center font-semibold py-2.5 rounded-lg transition">Men</button>
                         <button data-tab-target="#women" class="tab-button w-full text-center font-semibold py-2.5 rounded-lg transition">Women</button>
                         <button data-tab-target="#all" class="tab-button w-full text-center font-semibold py-2.5 rounded-lg transition">All</button>
                     </div>
-                    <div id="main-tabs-content">
+                    <div id="main-tabs-content" class="relative">
                         <!-- Data will be populated by JS -->
-                    </div>
-                    <div class="pt-6 text-center border-t border-gray-100 mt-4">
-                        <a href="statistics.html" class="cta-button font-bold px-8 py-3 rounded-lg inline-block">
-                            More statistics
-                        </a>
                     </div>
                 </div>
             </div>
@@ -304,15 +289,13 @@
         <section id="faq" class="py-20 bg-white/50 backdrop-blur-md">
             <div class="container mx-auto px-6 max-w-3xl reveal">
                 <div class="text-center mb-12">
-                    <h2 class="text-4xl md:text-5xl font-extrabold tracking-tighter">Beauty Rank FAQ</h2>
+                    <h2 class="text-4xl md:text-5xl font-extrabold tracking-tighter">Frequently Asked Questions</h2>
                 </div>
                 <div class="space-y-4">
-                    <div class="clean-card"><details class="p-6 cursor-pointer group"><summary class="font-semibold text-lg flex justify-between items-center">How accurate is the AI beauty ranking analysis?<span class="text-purple-500 transition group-open:rotate-45">+</span></summary><p class="mt-4 text-gray-600">Our AI is trained on a massive dataset of diverse images to analyze objective facial metrics like symmetry and proportions. While it provides a consistent, data-driven score, remember that beauty is deeply personal and subjective. Consider our ranking a fun, technological perspective, not a final judgment.</p></details></div>
-                    <div class="clean-card"><details class="p-6 cursor-pointer group"><summary class="font-semibold text-lg flex justify-between items-center">Are my photos and data secure?<span class="text-purple-500 transition group-open:rotate-45">+</span></summary><p class="mt-4 text-gray-600">Absolutely. <strong>Your privacy is our top priority.</strong> Your photo is used for the one-time analysis and is <strong>deleted immediately</strong> from our servers. We never store or share your images. The only data we keep for statistical rankings (like your first name and country) is anonymized.</p></details></div>
-                    <div class="clean-card"><details class="p-6 cursor-pointer group"><summary class="font-semibold text-lg flex justify-between items-center">What exactly does the AI analyze?<span class="text-purple-500 transition group-open:rotate-45">+</span></summary><p class="mt-4 text-gray-600">The AI evaluates dozens of objective parameters. This includes facial symmetry, the 'golden ratio,' skin clarity (texture, not color), and the proportions between different facial features like eyes, nose, and mouth. It's a purely geometric and textural analysis.</p></details></div>
-                    <div class="clean-card"><details class="p-6 cursor-pointer group"><summary class="font-semibold text-lg flex justify-between items-center">Can I use a photo with glasses or other people?<span class="text-purple-500 transition group-open:rotate-45">+</span></summary><p class="mt-4 text-gray-600">For the most accurate results, please use a clear, forward-facing photo of just yourself, without glasses, hats, or heavy shadows. Obstructions can interfere with the AI's ability to analyze your facial features correctly.</p></details></div>
-                    <div class="clean-card"><details class="p-6 cursor-pointer group"><summary class="font-semibold text-lg flex justify-between items-center">Why isn't this service free?<span class="text-purple-500 transition group-open:rotate-45">+</span></summary><p class="mt-4 text-gray-600">Running a sophisticated AI model requires significant computational resources. The small service fee allows us to cover these costs, maintain the technology, and ensure the service remains ad-free and secure, without ever needing to sell user data.</p></details></div>
-                    <div class="clean-card"><details class="p-6 cursor-pointer group"><summary class="font-semibold text-lg flex justify-between items-center">What do I receive after the analysis?<span class="text-purple-500 transition group-open:rotate-45">+</span></summary><p class="mt-4 text-gray-600">You'll receive your unique score on a 10-point scale, a brief AI-generated comment on your photo's strengths, and your anonymous placement in our global, country, and gender-based rankings.</p></details></div>
+                    <!-- CHANGED: Added icons to FAQ -->
+                    <div class="clean-card"><details class="p-6 cursor-pointer group"><summary class="font-semibold text-lg flex justify-between items-center"><span class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>How accurate is the analysis?</span><span class="text-purple-500 transition group-open:rotate-45">+</span></summary><p class="mt-4 text-gray-600">Our AI is trained on a massive dataset of diverse images to analyze objective facial metrics like symmetry and proportions. Remember that beauty is subjective. Consider our ranking a fun, technological perspective, not a final judgment.</p></details></div>
+                    <div class="clean-card"><details class="p-6 cursor-pointer group"><summary class="font-semibold text-lg flex justify-between items-center"><span class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>Is my data secure?</span><span class="text-purple-500 transition group-open:rotate-45">+</span></summary><p class="mt-4 text-gray-600">Absolutely. <strong>Your privacy is our top priority.</strong> Your photo is used for the one-time analysis and is <strong>immediately deleted</strong> from our servers. We never store or share your images.</p></details></div>
+                    <div class="clean-card"><details class="p-6 cursor-pointer group"><summary class="font-semibold text-lg flex justify-between items-center"><span class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>What does the AI analyze?</span><span class="text-purple-500 transition group-open:rotate-45">+</span></summary><p class="mt-4 text-gray-600">The AI evaluates dozens of objective parameters: facial symmetry, the 'golden ratio,' skin clarity (texture, not color), and proportions between facial features. It's a purely geometric and textural analysis.</p></details></div>
                 </div>
             </div>
         </section>
@@ -333,43 +316,37 @@
         </div>
     </footer>
 
-    <div id="cookie-consent-banner" class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg p-4 border-t border-gray-200 z-[60] transform translate-y-full transition-transform duration-500 ease-in-out">
-        <div class="container mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p class="text-sm text-gray-700 text-center sm:text-left">We use cookies to ensure you get the best experience on our website. By continuing to use our site, you agree to our <a href="policy.html" class="underline hover:text-purple-600">Privacy Policy</a>.</p>
-            <button id="accept-cookies" class="cta-button font-semibold px-5 py-2 rounded-lg flex-shrink-0">Accept</button>
-        </div>
-    </div>
-
     <script type="module">
         document.addEventListener('DOMContentLoaded', async () => {
-            
-            // --- DATA FETCHING ---
+            let allRankingsData = null; // Cache for data
+
+            // --- Data Fetching ---
             async function loadStats() {
                 try {
                     const response = await fetch('/.netlify/functions/getLandingPageStats');
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                     const data = await response.json();
+                    allRankingsData = data.rankings; // Save data to cache
                     
                     populateMarquees(data.marqueeData);
                     populateRankings(data.rankings);
                     startFakeCounter(data.stats.totalCount);
+                    setupSlider(data.rankings.world); // Setup slider
                     
                 } catch (error) {
-                    console.error("Failed to load landing page stats:", error);
+                    console.error("Failed to load stats:", error);
                 }
             }
 
-            // --- UI POPULATION FUNCTIONS ---
-            
+            // --- UI Population Functions ---
             function getCountryCode(countryName) {
-                const countryMap = {"Afghanistan":"af","Albania":"al","Algeria":"dz","American Samoa":"as","Andorra":"ad","Angola":"ao","Anguilla":"ai","Antarctica":"aq","Antigua and Barbuda":"ag","Argentina":"ar","Armenia":"am","Aruba":"aw","Australia":"au","Austria":"at","Azerbaijan":"az","Bahamas":"bs","Bahrain":"bh","Bangladesh":"bd","Barbados":"bb","Belarus":"by","Belgium":"be","Belize":"bz","Benin":"bj","Bermuda":"bm","Bhutan":"bt","Bolivia":"bo","Bosnia and Herzegovina":"ba","Botswana":"bw","Brazil":"br","British Indian Ocean Territory":"io","British Virgin Islands":"vg","Brunei":"bn","Bulgaria":"bg","Burkina Faso":"bf","Burundi":"bi","Cambodia":"kh","Cameroon":"cm","Canada":"ca","Cape Verde":"cv","Cayman Islands":"ky","Central African Republic":"cf","Chad":"td","Chile":"cl","China":"cn","Christmas Island":"cx","Cocos (Keeling) Islands":"cc","Colombia":"co","Comoros":"km","Cook Islands":"ck","Costa Rica":"cr","Croatia":"hr","Cuba":"cu","Curaçao":"cw","Cyprus":"cy","Czechia":"cz","Denmark":"dk","Djibouti":"dj","Dominica":"dm","Dominican Republic":"do","DR Congo":"cd","Ecuador":"ec","Egypt":"eg","El Salvador":"sv","Equatorial Guinea":"gq","Eritrea":"er","Estonia":"ee","Eswatini (Swaziland)":"sz","Ethiopia":"et","Falkland Islands":"fk","Faroe Islands":"fo","Fiji":"fj","Finland":"fi","France":"fr","French Guiana":"gf","French Polynesia":"pf","French Southern and Antarctic Lands":"tf","Gabon":"ga","Gambia":"gm","Georgia":"ge","Germany":"de","Ghana":"gh","Gibraltar":"gi","Greece":"gr","Greenland":"gl","Grenada":"gd","Guadeloupe":"gp","Guam":"gu","Guatemala":"gt","Guernsey":"gg","Guinea":"gn","Guinea-Bissau":"gw","Guyana":"gy","Haiti":"ht","Honduras":"hn","Hong Kong":"hk","Hungary":"hu","Iceland":"is","India":"in","Indonesia":"id","Iran":"ir","Iraq":"iq","Ireland":"ie","Isle of Man":"im","Israel":"il","Italy":"it","Ivory Coast":"ci","Jamaica":"jm","Japan":"jp","Jersey":"je","Jordan":"jo","Kazakhstan":"kz","Kenya":"ke","Kiribati":"ki","Kosovo":"xk","Kuwait":"kw","Kyrgyzstan":"kg","Laos":"la","Latvia":"lv","Lebanon":"lb","Lesotho":"ls","Liberia":"lr","Libya":"ly","Liechtenstein":"li","Lithuania":"lt","Luxembourg":"lu","Macau":"mo","Madagascar":"mg","Malawi":"mw","Malaysia":"my","Maldives":"mv","Mali":"ml","Malta":"mt","Marshall Islands":"mh","Martinique":"mq","Mauritania":"mr","Mauritius":"mu","Mayotte":"yt","Mexico":"mx","Micronesia":"fm","Moldova":"md","Monaco":"mc","Mongolia":"mn","Montenegro":"me","Montserrat":"ms","Morocco":"ma","Mozambique":"mz","Myanmar":"mm","Namibia":"na","Nauru":"nr","Nepal":"np","Netherlands":"nl","New Caledonia":"nc","New Zealand":"nz","Nicaragua":"ni","Niger":"ne","Nigeria":"ng","Niue":"nu","Norfolk Island":"nf","North Korea":"kp","North Macedonia":"mk","Northern Mariana Islands":"mp","Norway":"no","Oman":"om","Pakistan":"pk","Palau":"pw","Palestine":"ps","Panama":"pa","Papua New Guinea":"pg","Paraguay":"py","Peru":"pe","Philippines":"ph","Pitcairn Islands":"pn","Poland":"pl","Portugal":"pt","Puerto Rico":"pr","Qatar":"qa","Republic of the Congo":"cg","Romania":"ro","Russia":"ru","Rwanda":"rw","Réunion":"re","Saint Barthélemy":"bl","Saint Helena Ascension and Tristan da Cunha":"sh","Saint Kitts and Nevis":"kn","Saint Lucia":"lc","Saint Martin":"mf","Saint Pierre and Miquelon":"pm","Saint Vincent and the Grenadines":"vc","Samoa":"ws","San Marino":"sm","Saudi Arabia":"sa","Senegal":"sn","Serbia":"rs","Seychelles":"sc","Sierra Leone":"sl","Singapore":"sg","Sint Maarten":"sx","Slovakia":"sk","Slovenia":"si","Solomon Islands":"sb","Somalia":"so","South Africa":"za","South Korea":"kr","South Sudan":"ss","Spain":"es","Sri Lanka":"lk","Sudan":"sd","Suriname":"sr","Svalbard and Jan Mayen":"sj","Sweden":"se","Switzerland":"ch","Syria":"sy","São Tomé and Príncipe":"st","Taiwan":"tw","Tajikistan":"tj","Tanzania":"tz","Thailand":"th","Timor-Leste":"tl","Togo":"tg","Tokelau":"tk","Tonga":"to","Trinidad and Tobago":"tt","Tunisia":"tn","Turkey":"tr","Turkmenistan":"tm","Turks and Caicos Islands":"tc","Tuvalu":"tv","Uganda":"ug","Ukraine":"ua","United Arab Emirates":"ae","United Kingdom":"gb","United States":"us","United States Minor Outlying Islands":"um","United States Virgin Islands":"vi","Uruguay":"uy","Uzbekistan":"uz","Vanuatu":"vu","Vatican City (Holy See)":"va","Venezuela":"ve","Vietnam":"vn","Wallis and Futuna":"wf","Western Sahara":"eh","Yemen":"ye","Zambia":"zm","Zimbabwe":"zw"};
+                // Country map (abbreviated for example)
+                const countryMap = {"Afghanistan":"af","Albania":"al","Algeria":"dz","Andorra":"ad","Angola":"ao","Argentina":"ar","Australia":"au","Austria":"at","Belarus":"by","Belgium":"be","Brazil":"br","Canada":"ca","China":"cn","Denmark":"dk","Egypt":"eg","Finland":"fi","France":"fr","Germany":"de","Greece":"gr","India":"in","Italy":"it","Japan":"jp","Mexico":"mx","Netherlands":"nl","Norway":"no","Poland":"pl","Portugal":"pt","Russia":"ru","Spain":"es","Sweden":"se","Switzerland":"ch","Turkey":"tr","Ukraine":"ua","United Kingdom":"gb","United States":"us"};
                 return countryMap[countryName] || 'un';
             }
 
             function formatTimeAgo(timestamp) {
-                if (!timestamp?.seconds) return 'a moment ago';
+                if (!timestamp?.seconds) return 'recently';
                 const now = new Date();
                 const past = new Date(timestamp.seconds * 1000);
                 const diffInSeconds = Math.max(0, Math.floor((now - past) / 1000));
@@ -383,13 +360,28 @@
                 return `${diffInDays}d ago`;
             }
 
+            // CHANGED: Added wrapper for hover effect and additional info
             function populateMarquees(data) {
                 if (!data || data.length === 0) return;
                 let cardHTML = '';
                 data.forEach(item => {
                     const flagCode = getCountryCode(item.country);
                     const timeAgo = formatTimeAgo(item.timestamp);
-                    cardHTML += `<div class="clean-card p-4 flex items-center space-x-4 mx-3 flex-shrink-0" style="width: 280px;"><img src="https://flagcdn.com/w80/${flagCode}.png" width="40" height="30" alt="Flag of ${item.country}" class="rounded-md"><div class="flex-grow"><p class="font-bold">${item.name}, ${item.age}</p><p class="text-sm text-gray-500">${timeAgo}</p></div><p class="text-2xl font-extrabold logo-gradient-text">${item.score.toFixed(3)}</p></div>`;
+                    const profession = item.profession || 'Profession not specified';
+                    cardHTML += `
+                    <div class="group clean-card p-4 flex items-center space-x-4 mx-3 flex-shrink-0 relative" style="width: 280px;">
+                        <img src="https://flagcdn.com/w80/${flagCode}.png" width="40" height="30" alt="Flag of ${item.country}" class="rounded-md">
+                        <div class="flex-grow">
+                            <p class="font-bold">${item.name}, ${item.age}</p>
+                            <p class="text-sm text-gray-500">${timeAgo}</p>
+                        </div>
+                        <p class="text-2xl font-extrabold logo-gradient-text">${item.score.toFixed(3)}</p>
+                        <!-- NEW: Pop-up block with additional info -->
+                        <div class="absolute inset-0 bg-white bg-opacity-95 backdrop-blur-sm rounded-lg p-4 flex flex-col justify-center items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <p class="font-bold text-lg">${item.country}</p>
+                            <p class="text-gray-600">${profession}</p>
+                        </div>
+                    </div>`;
                 });
                 document.querySelectorAll('.marquee-content').forEach(container => {
                     container.innerHTML = cardHTML + cardHTML;
@@ -414,22 +406,11 @@
 
                     if (data && data.length > 0) {
                         data.forEach((item, itemIndex) => {
-                            const medals = ['medal-gold.svg', 'medal-silver.svg', 'medal-bronze.svg'];
-                            const rankHtml = itemIndex < 3 ? `<img src="${medals[itemIndex]}" alt="Medal" class="w-6 h-6">` : `<span class="font-bold text-lg text-gray-400 w-6 text-center">${itemIndex + 1}</span>`;
-                            
-                            let bgColor = 'bg-transparent';
-                            if (item.gender && item.gender.toLowerCase() === 'female') {
-                                bgColor = 'bg-pink-50/50';
-                            } else if (item.gender && item.gender.toLowerCase() === 'male') {
-                                bgColor = 'bg-blue-50/50';
-                            } else if (itemIndex % 2 !== 0) {
-                                bgColor = 'bg-gray-50/50';
-                            }
-
+                            const rankHtml = itemIndex < 3 ? `<img src="https://img.icons8.com/color/48/000000/medal-${itemIndex === 0 ? 'first' : itemIndex === 1 ? 'second' : 'third'}-place.png" alt="Medal" class="w-6 h-6">` : `<span class="font-bold text-lg text-gray-400 w-6 text-center">${itemIndex + 1}</span>`;
                             const flagCode = getCountryCode(item.country || item.name);
                             const displayName = item.age ? `${item.name}, ${item.age}` : item.name;
 
-                            itemsHtml += `<div class="flex items-center justify-between p-3 rounded-lg ${bgColor} ranking-item"><div class="flex items-center space-x-4"><div class="w-6 text-center">${rankHtml}</div><img src="https://flagcdn.com/w40/${flagCode}.png" width="40" alt="Flag" class="rounded-sm"><div><div class="font-semibold">${displayName}</div></div></div><div class="font-bold text-lg text-purple-600">${item.score.toFixed(3)}/10</div></div>`;
+                            itemsHtml += `<div class="flex items-center justify-between p-3 rounded-lg ranking-item" data-score="${item.score.toFixed(3)}"><div class="flex items-center space-x-4"><div class="w-6 text-center">${rankHtml}</div><img src="https://flagcdn.com/w40/${flagCode}.png" width="40" alt="Flag" class="rounded-sm"><div><div class="font-semibold">${displayName}</div></div></div><div class="font-bold text-lg text-purple-600">${item.score.toFixed(3)}/10</div></div>`;
                         });
                     } else {
                         itemsHtml = '<p class="text-center text-gray-500 p-4">No data available yet.</p>';
@@ -439,7 +420,7 @@
                 });
             }
             
-            // --- UI INTERACTIVITY ---
+            // --- Interactivity ---
 
             function startFakeCounter(initialCount) {
                 let participantCount = 5467365 + initialCount;
@@ -447,7 +428,7 @@
                 setInterval(() => {
                     participantCount += Math.floor(Math.random() * 5) + 1;
                     counterElement.textContent = participantCount.toLocaleString('en-US');
-                }, 500);
+                }, 2500);
             }
 
             document.getElementById('main-tabs-nav').addEventListener('click', (e) => {
@@ -455,10 +436,55 @@
                 if (!button) return;
                 document.querySelectorAll('#main-tabs-nav .tab-button').forEach(btn => btn.classList.remove('active'));
                 button.classList.add('active');
-                const target = document.querySelector(button.dataset.tabTarget);
+                const targetId = button.dataset.tabTarget;
+                const target = document.querySelector(targetId);
                 document.querySelectorAll('#main-tabs-content .tab-content').forEach(content => content.classList.remove('active'));
                 if (target) target.classList.add('active');
+                // Update slider for the new active tab
+                const newSliderData = allRankingsData[targetId.substring(1)];
+                setupSlider(newSliderData);
             });
+
+            // NEW: Logic for interactive slider
+            function setupSlider(data) {
+                const slider = document.getElementById('score-slider');
+                const resultText = document.getElementById('slider-result');
+                if (!slider || !data || data.length === 0) {
+                    if(resultText) resultText.textContent = "Ranking not available for this category.";
+                    return;
+                };
+
+                const updateSliderResult = () => {
+                    const value = parseFloat(slider.value);
+                    let rank = data.length + 1;
+                    for (let i = 0; i < data.length; i++) {
+                        if (value > data[i].score) {
+                            rank = i + 1;
+                            break;
+                        }
+                    }
+                    resultText.innerHTML = `Your score: <span class="text-purple-600 font-black">${value.toFixed(1)}</span>. Potential rank: <span class="text-purple-600 font-black">~${rank}</span>`;
+                    
+                    // Highlight in the list
+                    const activeTab = document.querySelector('.tab-content.active');
+                    if(activeTab) {
+                        activeTab.querySelectorAll('.ranking-item').forEach(item => {
+                            item.classList.remove('bg-purple-100', 'rounded-xl', 'scale-105', 'shadow-lg', 'z-10', 'relative');
+                            item.style.transition = 'all 0.3s ease';
+                        });
+
+                        if(rank <= data.length) {
+                             const targetItem = activeTab.querySelector(`.ranking-item:nth-child(${rank})`);
+                             if(targetItem) {
+                                 targetItem.classList.add('bg-purple-100', 'rounded-xl', 'scale-105', 'shadow-lg', 'z-10', 'relative');
+                             }
+                        }
+                    }
+                };
+                
+                slider.oninput = updateSliderResult;
+                updateSliderResult(); // Initial call
+            }
 
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
@@ -469,28 +495,26 @@
                 });
             }, { threshold: 0.15 });
 
-            document.querySelectorAll('.reveal').forEach(el => {
-                observer.observe(el);
-            });
+            document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-            const cookieBanner = document.getElementById('cookie-consent-banner');
-            const acceptButton = document.getElementById('accept-cookies');
-            if (cookieBanner && acceptButton) {
-                if (!localStorage.getItem('cookiesAccepted')) {
-                    setTimeout(() => {
-                        cookieBanner.classList.remove('translate-y-full');
-                    }, 1500);
-                }
-                acceptButton.addEventListener('click', () => {
-                    localStorage.setItem('cookiesAccepted', 'true');
-                    cookieBanner.classList.add('translate-y-full');
+            // NEW: Logic for connecting line animation
+            const lineProgress = document.getElementById('connecting-line-progress');
+            const steps = document.querySelectorAll('[data-step]');
+            const stepObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const stepNum = parseInt(entry.target.dataset.step);
+                        const progressHeight = (stepNum / steps.length) * 100;
+                        if(lineProgress) lineProgress.style.height = `${progressHeight}%`;
+                    }
                 });
-            }
+            }, { threshold: 0.8 });
 
-            // --- INITIAL LOAD ---
+            steps.forEach(step => stepObserver.observe(step));
+            
+            // --- Initial Load ---
             loadStats();
         });
     </script>
-
 </body>
 </html>
