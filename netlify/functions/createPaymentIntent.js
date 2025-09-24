@@ -21,9 +21,9 @@ exports.handler = async (event, context) => {
     let amount;
 
     if (highIncomeCountries.includes(countryCode)) {
-      amount = 499;
+      amount = 99;
     } else if (developingCountries.includes(countryCode)) {
-      amount = 249;
+      amount = 99;
     } else {
       amount = 99;
     }
